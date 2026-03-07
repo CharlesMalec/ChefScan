@@ -1,0 +1,5 @@
+{
+  "name": "ChefScan",
+  "description": "Numérisez vos livres de recettes, importez depuis le web et générez vos listes de courses intelligemment.",
+  "requestFramePermissions": ["camera"]
+}
