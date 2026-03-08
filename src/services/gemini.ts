@@ -27,7 +27,8 @@ const recipeSchema = {
 };
 
 function getAI() {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+  // Use a safer way to access env variables that works in both Node and Browser
+  const apiKey = (typeof process !== 'undefined' ? (process.env?.GEMINI_API_KEY || process.env?.API_KEY) : null) || (import.meta as any).env?.VITE_GEMINI_API_KEY;
   
   if (!apiKey || apiKey === 'MY_GOOGLE_KEY' || apiKey === 'YOUR_API_KEY') {
     throw new Error("Clé API Gemini non configurée. Veuillez ajouter GEMINI_API_KEY dans vos variables d'environnement.");
@@ -50,7 +51,7 @@ export async function analyzeRecipeImage(base64Image: string, mimeType: string) 
             }
           },
           {
-            text: "Analyse cette image de recette de cuisine. Extrais toutes les informations demandées dans le schéma JSON. IMPORTANT : Pour les ingrédients, n'extrais que le nom de l'aliment de base (ex: 'oignon' au lieu de 'oignon haché', 'ail' au lieu de 'gousses d'ail pressées') afin de faciliter la mutualisation dans une liste de courses. Si une information manque, déduis-la ou laisse vide."
+            text: "Analyse cette image de recette de cuisine. Extrais toutes les informations demandées dans le schéma JSON. Si une information manque, déduis-la ou laisse vide."
           }
         ]
       },
@@ -78,7 +79,7 @@ export async function analyzeRecipeUrl(url: string) {
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Analyse la recette contenue dans ce lien : ${url}. Extrais toutes les informations demandées dans le schéma JSON. IMPORTANT : Pour les ingrédients, n'extrais que le nom de l'aliment de base (ex: 'oignon' au lieu de 'oignon haché', 'ail' au lieu de 'gousses d'ail pressées') afin de faciliter la mutualisation dans une liste de courses.`,
+      contents: `Analyse la recette contenue dans ce lien : ${url}. Extrais toutes les informations demandées dans le schéma JSON.`,
       config: {
         tools: [{ urlContext: {} }],
         responseMimeType: "application/json",
