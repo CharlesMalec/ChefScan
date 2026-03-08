@@ -12,11 +12,11 @@ export default defineConfig(({mode}) => {
   };
 
   return {
+    base: '',
     plugins: [react(), tailwindcss()],
     define: {
-      'process.env.GEMINI_API_KEY': JSON.stringify(getSafeEnv('GEMINI_API_KEY')),
-      'process.env.API_KEY': JSON.stringify(getSafeEnv('API_KEY')),
-      'process.env.NODE_ENV': JSON.stringify(mode),
+      'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(getSafeEnv('GEMINI_API_KEY')),
+      'import.meta.env.VITE_API_KEY': JSON.stringify(getSafeEnv('API_KEY')),
     },
     resolve: {
       alias: {

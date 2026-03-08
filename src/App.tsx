@@ -152,9 +152,11 @@ export default function App() {
     
     recipes.filter(r => selectedForMenu.has(r.id)).forEach(r => {
       r.ingredients.forEach(i => {
+        if (!i || !i.name) return;
         const name = i.name.toLowerCase().trim();
-        const amount = parseFloat(i.amount) || 0;
-        const unit = i.unit.toLowerCase().trim();
+        const amountStr = String(i.amount || '0');
+        const amount = parseFloat(amountStr.replace(',', '.')) || 0;
+        const unit = (i.unit || '').toLowerCase().trim();
         
         if (!list[name]) list[name] = [];
         

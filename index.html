@@ -3,7 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
+    <title>ChefScan - Vos recettes, simplifiées</title>
+    <script>
+      // Polyfill process and global for libraries that expect them
+      window.process = window.process || { env: { NODE_ENV: 'production' } };
+      window.global = window;
+
+      // Global error handler to debug "blank page" issues in production
+      window.onerror = function(msg, url, line, col, error) {
+        var root = document.getElementById('root');
+        if (root && (!root.innerHTML || root.innerHTML === '')) {
+          root.innerHTML = '<div style="padding: 40px; color: #7c2d12; background: #fff7ed; font-family: serif; min-height: 100vh;">' +
+            '<h2 style="font-size: 24px; margin-bottom: 16px;">Oups ! Une erreur est survenue au chargement.</h2>' +
+            '<p style="margin-bottom: 24px; opacity: 0.8;">' + msg + '</p>' +
+            '<details style="cursor: pointer;">' +
+              '<summary style="font-weight: bold;">Détails techniques</summary>' +
+              '<pre style="margin-top: 16px; font-size: 12px; overflow: auto; background: #ffedd5; padding: 16px; border-radius: 8px;">' + (error && error.stack ? error.stack : 'Pas de stack trace disponible') + '</pre>' +
+            '</details>' +
+            '<button onclick="window.location.reload()" style="margin-top: 24px; background: #7c2d12; color: white; border: none; padding: 12px 24px; border-radius: 12px; cursor: pointer; font-weight: bold;">Réessayer</button>' +
+          '</div>';
+        }
+      };
+    </script>
   </head>
   <body>
     <div id="root"></div>

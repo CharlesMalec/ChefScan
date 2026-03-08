@@ -27,8 +27,8 @@ const recipeSchema = {
 };
 
 function getAI() {
-  // Use a safer way to access env variables that works in both Node and Browser
-  const apiKey = (typeof process !== 'undefined' ? (process.env?.GEMINI_API_KEY || process.env?.API_KEY) : null) || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+  // Use import.meta.env which is the standard way in Vite
+  const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || (import.meta as any).env?.VITE_API_KEY;
   
   if (!apiKey || apiKey === 'MY_GOOGLE_KEY' || apiKey === 'YOUR_API_KEY') {
     throw new Error("Clé API Gemini non configurée. Veuillez ajouter GEMINI_API_KEY dans vos variables d'environnement.");

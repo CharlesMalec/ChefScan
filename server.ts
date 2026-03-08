@@ -2,6 +2,7 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import Database from "better-sqlite3";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -101,7 +102,11 @@ async function startServer() {
     app.get("*", (req, res) => {
       const indexPath = path.join(distPath, "index.html");
       console.log("Serving index.html from", indexPath);
-      res.sendFile(indexPath);
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(404).send(`Build folder (dist) not found at ${indexPath}. Please run 'npm run build' first.`);
+      }
     });
   }
 
