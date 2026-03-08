@@ -15,22 +15,22 @@ export default function App() {
   const [scannedRecipe, setScannedRecipe] = useState<Recipe | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load recipes from local storage on mount
+  // Load recipes from API on mount
   useEffect(() => {
-    const saved = localStorage.getItem('chefscan_recipes');
-    if (saved) {
-      try {
-        setRecipes(JSON.parse(saved));
-      } catch (e) {
-        console.error("Failed to parse recipes", e);
-      }
-    }
+    fetchRecipes();
   }, []);
 
-  // Save recipes to local storage when updated
-  useEffect(() => {
-    localStorage.setItem('chefscan_recipes', JSON.stringify(recipes));
-  }, [recipes]);
+  const fetchRecipes = async () => {
+    try {
+      const res = await fetch('/api/recipes');
+      if (res.ok) {
+        const data = await res.json();
+        setRecipes(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch recipes", e);
+    }
+  };
 
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -103,11 +103,39 @@ export default function App() {
     }
   };
 
-  const saveRecipe = () => {
+  const saveRecipe = async () => {
     if (scannedRecipe) {
-      setRecipes(prev => [scannedRecipe, ...prev]);
-      setScannedRecipe(null);
-      setActiveTab('library');
+      try {
+        const res = await fetch('/api/recipes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(scannedRecipe)
+        });
+        if (res.ok) {
+          await fetchRecipes();
+          setScannedRecipe(null);
+          setActiveTab('library');
+        }
+      } catch (e) {
+        console.error("Failed to save recipe", e);
+        alert("Erreur lors de la sauvegarde de la recette.");
+      }
+    }
+  };
+
+  const deleteRecipe = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Supprimer cette recette ?")) return;
+    try {
+      const res = await fetch(`/api/recipes/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        await fetchRecipes();
+        const newSelected = new Set(selectedForMenu);
+        newSelected.delete(id);
+        setSelectedForMenu(newSelected);
+      }
+    } catch (e) {
+      console.error("Failed to delete recipe", e);
     }
   };
 
@@ -130,54 +158,23 @@ export default function App() {
     return list;
   };
 
-  const [hasKey, setHasKey] = useState(true);
-
-  useEffect(() => {
-    const checkKey = async () => {
-      if (typeof window !== 'undefined' && (window as any).aistudio) {
-        const selected = await (window as any).aistudio.hasSelectedApiKey();
-        setHasKey(selected);
-      }
-    };
-    checkKey();
-  }, []);
-
-  const handleSelectKey = async () => {
-    if (typeof window !== 'undefined' && (window as any).aistudio) {
-      await (window as any).aistudio.openSelectKey();
-      setHasKey(true);
-      // Force a reload to ensure the new key is picked up if needed
-      window.location.reload();
-    }
-  };
-
-  let apiKey = '';
-  try {
-    apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
-  } catch (e) {
-    // Ignore ReferenceError if process is not defined
-  }
-  const maskedKey = apiKey ? `${apiKey.substring(0, 4)}...${apiKey.substring(apiKey.length - 4)}` : 'UNDEFINED';
-
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
-      <div className="w-full bg-red-100 text-red-800 text-xs text-center py-1 font-mono z-50 flex justify-center items-center gap-4">
-        <span>DEBUG API KEY: {maskedKey} (Length: {apiKey?.length || 0})</span>
-        {(!hasKey || !apiKey) && (
-          <button onClick={handleSelectKey} className="bg-red-600 text-white px-2 py-0.5 rounded text-xs font-bold hover:bg-red-700">
-            SÉLECTIONNER CLÉ API
-          </button>
-        )}
-      </div>
-      
+    <div className="min-h-screen bg-[#FDFCFB] flex flex-col md:flex-row font-sans text-slate-900">
       {/* Mobile Header */}
-      <header className="md:hidden bg-white px-6 py-4 shadow-sm sticky top-0 z-10">
-        <h1 className="text-2xl font-serif font-bold text-orange-600 flex items-center gap-2">
-          <ChefHat className="w-7 h-7" />
+      <header className="md:hidden bg-white/80 backdrop-blur-md px-6 py-4 shadow-sm sticky top-0 z-40 flex justify-between items-center border-b border-slate-100">
+        <h1 className="text-xl font-serif font-bold text-orange-600 flex items-center gap-2">
+          <ChefHat className="w-6 h-6" />
           ChefScan
         </h1>
+        {selectedForMenu.size > 0 && (
+          <button onClick={() => setActiveTab('list')} className="relative p-2">
+            <ShoppingCart className="w-6 h-6 text-slate-600" />
+            <span className="absolute -top-1 -right-1 bg-emerald-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+              {selectedForMenu.size}
+            </span>
+          </button>
+        )}
       </header>
-
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 h-screen sticky top-0 p-6">
         <h1 className="text-2xl font-serif font-bold text-orange-600 flex items-center gap-2 mb-10">
@@ -249,15 +246,23 @@ export default function App() {
               ) : (
                 <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
                   {recipes.map(recipe => (
-                    <div key={recipe.id} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-4 hover:shadow-md transition-shadow">
+                    <div key={recipe.id} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-4 hover:shadow-md transition-shadow group relative">
                       <div className="flex justify-between items-start gap-4">
                         <h3 className="font-serif font-semibold text-xl leading-tight text-slate-900">{recipe.title}</h3>
-                        <button 
-                          onClick={() => toggleMenuSelection(recipe.id)}
-                          className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${selectedForMenu.has(recipe.id) ? 'bg-emerald-500 border-emerald-500 text-white scale-110' : 'border-slate-200 text-transparent hover:border-emerald-200'}`}
-                        >
-                          <Check className="w-5 h-5" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={(e) => deleteRecipe(recipe.id, e)}
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => toggleMenuSelection(recipe.id)}
+                            className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${selectedForMenu.has(recipe.id) ? 'bg-emerald-500 border-emerald-500 text-white scale-110' : 'border-slate-200 text-transparent hover:border-emerald-200'}`}
+                          >
+                            <Check className="w-5 h-5" />
+                          </button>
+                        </div>
                       </div>
                       
                       <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600 font-medium mt-auto pt-4 border-t border-slate-50">
@@ -274,19 +279,22 @@ export default function App() {
 
           {/* SCANNER TAB */}
           {activeTab === 'scan' && (
-            <motion.div key="scan" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-2xl mx-auto">
+            <motion.div key="scan" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-4xl mx-auto">
               {!scannedRecipe ? (
-                <div className="space-y-8">
-                  <h2 className="text-2xl font-semibold text-slate-800 mb-6">Ajouter une recette</h2>
+                <div className="space-y-12">
+                  <div className="text-center max-w-xl mx-auto mb-12">
+                    <h2 className="text-4xl font-serif font-bold text-slate-900 mb-4">Ajouter une recette</h2>
+                    <p className="text-slate-500 text-lg">Choisissez votre méthode préférée pour importer une nouvelle recette dans votre bibliothèque.</p>
+                  </div>
                   
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid md:grid-cols-2 gap-8">
                     {/* Camera / Photo Upload */}
-                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 text-center flex flex-col items-center justify-center hover:border-orange-200 transition-colors">
-                      <div className="w-20 h-20 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center mb-6">
-                        <Camera className="w-10 h-10" />
+                    <div className="bg-white p-10 rounded-[32px] shadow-sm border border-slate-100 text-center flex flex-col items-center justify-center hover:border-orange-200 transition-all hover:shadow-xl hover:shadow-orange-500/5 group">
+                      <div className="w-24 h-24 bg-orange-50 text-orange-600 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
+                        <Camera className="w-12 h-12" />
                       </div>
-                      <h3 className="font-medium text-lg mb-2 text-slate-900">Scanner un livre</h3>
-                      <p className="text-sm text-slate-500 mb-8">Prenez en photo la page de votre livre de cuisine.</p>
+                      <h3 className="font-serif font-bold text-2xl mb-3 text-slate-900">Scanner un livre</h3>
+                      <p className="text-slate-500 mb-10 leading-relaxed">Prenez en photo la page de votre livre de cuisine préféré.</p>
                       
                       <input 
                         type="file" 
@@ -300,37 +308,37 @@ export default function App() {
                         type="button"
                         disabled={loading}
                         onClick={() => fileInputRef.current?.click()}
-                        className="w-full bg-orange-600 hover:bg-orange-700 transition-colors text-white py-3.5 rounded-xl font-medium shadow-sm flex items-center justify-center gap-2 disabled:opacity-70"
+                        className="w-full bg-orange-600 hover:bg-orange-700 transition-all text-white py-4 rounded-2xl font-bold shadow-lg shadow-orange-600/20 flex items-center justify-center gap-3 disabled:opacity-70 active:scale-[0.98]"
                       >
-                        {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Analyse en cours...</> : <><ImageIcon className="w-5 h-5" /> Prendre une photo</>}
+                        {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Analyse...</> : <><ImageIcon className="w-5 h-5" /> Prendre une photo</>}
                       </button>
                     </div>
-
+ 
                     {/* URL Import */}
-                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center justify-center hover:border-blue-200 transition-colors">
-                      <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
-                        <LinkIcon className="w-10 h-10" />
+                    <div className="bg-white p-10 rounded-[32px] shadow-sm border border-slate-100 flex flex-col items-center justify-center hover:border-blue-200 transition-all hover:shadow-xl hover:shadow-blue-500/5 group">
+                      <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
+                        <LinkIcon className="w-12 h-12" />
                       </div>
-                      <h3 className="font-medium text-lg mb-2 text-slate-900">Importer depuis le web</h3>
-                      <p className="text-sm text-slate-500 mb-8">Collez le lien d'un blog ou site de cuisine.</p>
-
+                      <h3 className="font-serif font-bold text-2xl mb-3 text-slate-900">Importer du web</h3>
+                      <p className="text-slate-500 mb-10 leading-relaxed">Collez le lien d'un blog ou d'un site de cuisine.</p>
+ 
                       <form 
                         onSubmit={(e) => { e.preventDefault(); handleUrlSubmit(); }}
-                        className="flex gap-2 w-full"
+                        className="flex flex-col gap-4 w-full"
                       >
                         <input 
                           type="url" 
-                          placeholder="https://..." 
+                          placeholder="https://recette-delicieuse.com/..." 
                           value={urlInput}
                           onChange={(e) => setUrlInput(e.target.value)}
-                          className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 w-full"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all"
                         />
                         <button 
                           type="submit"
                           disabled={loading || !urlInput}
-                          className="bg-slate-900 hover:bg-slate-800 transition-colors text-white px-4 rounded-xl disabled:opacity-50 flex items-center justify-center shrink-0"
+                          className="w-full bg-slate-900 hover:bg-slate-800 transition-all text-white py-4 rounded-2xl font-bold shadow-lg shadow-slate-900/20 disabled:opacity-50 flex items-center justify-center gap-3 active:scale-[0.98]"
                         >
-                          {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ChevronRight className="w-5 h-5" />}
+                          {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><ChevronRight className="w-5 h-5" /> Importer le lien</>}
                         </button>
                       </form>
                     </div>
@@ -417,7 +425,10 @@ export default function App() {
                 <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 md:p-8">
                   <div className="mb-6 pb-6 border-b border-slate-100 flex justify-between items-center">
                     <p className="text-slate-600 font-medium">Basée sur <span className="text-orange-600 font-bold">{selectedForMenu.size}</span> recette(s) sélectionnée(s).</p>
-                    <button className="text-sm text-slate-500 hover:text-slate-800 flex items-center gap-1">
+                    <button 
+                      onClick={() => setSelectedForMenu(new Set())}
+                      className="text-sm text-slate-500 hover:text-slate-800 flex items-center gap-1"
+                    >
                       Tout décocher
                     </button>
                   </div>

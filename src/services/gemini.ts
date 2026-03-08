@@ -27,54 +27,74 @@ const recipeSchema = {
 };
 
 function getAI() {
-  let apiKey = '';
-  try {
-    apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
-  } catch (e) {
-    // Ignore ReferenceError if process is not defined
+  const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+  
+  if (!apiKey || apiKey === 'MY_GOOGLE_KEY' || apiKey === 'YOUR_API_KEY') {
+    throw new Error("Clé API Gemini non configurée. Veuillez ajouter GEMINI_API_KEY dans vos variables d'environnement.");
   }
   
-  if (!apiKey || apiKey === 'undefined') {
-    throw new Error("La clé API est introuvable ou invalide. Veuillez vérifier vos Secrets.");
-  }
   return new GoogleGenAI({ apiKey });
 }
 
 export async function analyzeRecipeImage(base64Image: string, mimeType: string) {
   const ai = getAI();
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: {
-      parts: [
-        {
-          inlineData: {
-            data: base64Image,
-            mimeType: mimeType,
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: {
+        parts: [
+          {
+            inlineData: {
+              data: base64Image,
+              mimeType: mimeType,
+            }
+          },
+          {
+            text: "Analyse cette image de recette de cuisine. Extrais toutes les informations demandées dans le schéma JSON. Si une information manque, déduis-la ou laisse vide."
           }
-        },
-        {
-          text: "Analyse cette image de recette de cuisine. Extrais toutes les informations demandées dans le schéma JSON. Si une information manque, déduis-la ou laisse vide."
-        }
-      ]
-    },
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: recipeSchema,
+        ]
+      },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: recipeSchema,
+      }
+    });
+    try {
+      return JSON.parse(response.text || "{}");
+    } catch (e) {
+      console.error("Erreur de parsing JSON", e, response.text);
+      throw new Error("Le modèle n'a pas renvoyé un format JSON valide.");
     }
-  });
-  return JSON.parse(response.text || "{}");
+  } catch (error: any) {
+    if (error.message && error.message.includes("API key not valid")) {
+      throw new Error("La clé API fournie est invalide. Veuillez sélectionner une clé API valide via le bouton en haut de l'écran.");
+    }
+    throw error;
+  }
 }
 
 export async function analyzeRecipeUrl(url: string) {
   const ai = getAI();
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: `Analyse la recette contenue dans ce lien : ${url}. Extrais toutes les informations demandées dans le schéma JSON.`,
-    config: {
-      tools: [{ urlContext: {} }],
-      responseMimeType: "application/json",
-      responseSchema: recipeSchema,
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Analyse la recette contenue dans ce lien : ${url}. Extrais toutes les informations demandées dans le schéma JSON.`,
+      config: {
+        tools: [{ urlContext: {} }],
+        responseMimeType: "application/json",
+        responseSchema: recipeSchema,
+      }
+    });
+    try {
+      return JSON.parse(response.text || "{}");
+    } catch (e) {
+      console.error("Erreur de parsing JSON", e, response.text);
+      throw new Error("Le modèle n'a pas renvoyé un format JSON valide.");
     }
-  });
-  return JSON.parse(response.text || "{}");
+  } catch (error: any) {
+    if (error.message && error.message.includes("API key not valid")) {
+      throw new Error("La clé API fournie est invalide. Veuillez sélectionner une clé API valide via le bouton en haut de l'écran.");
+    }
+    throw error;
+  }
 }
