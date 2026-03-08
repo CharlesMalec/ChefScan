@@ -12,8 +12,8 @@ const recipeSchema = {
       items: {
         type: Type.OBJECT,
         properties: {
-          name: { type: Type.STRING, description: "Nom de l'ingrédient" },
-          amount: { type: Type.STRING, description: "Quantité (ex: 2, 100)" },
+          name: { type: Type.STRING, description: "Nom de l'ingrédient BRUT (ex: 'oignon' au lieu de 'oignon haché'). Ne garde que l'aliment de base pour faciliter la liste de courses." },
+          amount: { type: Type.STRING, description: "Quantité numérique (ex: 2, 100)" },
           unit: { type: Type.STRING, description: "Unité (ex: g, ml, cuillères, entier)" }
         }
       }
@@ -50,7 +50,7 @@ export async function analyzeRecipeImage(base64Image: string, mimeType: string) 
             }
           },
           {
-            text: "Analyse cette image de recette de cuisine. Extrais toutes les informations demandées dans le schéma JSON. Si une information manque, déduis-la ou laisse vide."
+            text: "Analyse cette image de recette de cuisine. Extrais toutes les informations demandées dans le schéma JSON. IMPORTANT : Pour les ingrédients, n'extrais que le nom de l'aliment de base (ex: 'oignon' au lieu de 'oignon haché', 'ail' au lieu de 'gousses d'ail pressées') afin de faciliter la mutualisation dans une liste de courses. Si une information manque, déduis-la ou laisse vide."
           }
         ]
       },
@@ -78,7 +78,7 @@ export async function analyzeRecipeUrl(url: string) {
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Analyse la recette contenue dans ce lien : ${url}. Extrais toutes les informations demandées dans le schéma JSON.`,
+      contents: `Analyse la recette contenue dans ce lien : ${url}. Extrais toutes les informations demandées dans le schéma JSON. IMPORTANT : Pour les ingrédients, n'extrais que le nom de l'aliment de base (ex: 'oignon' au lieu de 'oignon haché', 'ail' au lieu de 'gousses d'ail pressées') afin de faciliter la mutualisation dans une liste de courses.`,
       config: {
         tools: [{ urlContext: {} }],
         responseMimeType: "application/json",
