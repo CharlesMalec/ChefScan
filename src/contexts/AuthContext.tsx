@@ -26,6 +26,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let unsubProfile: (() => void) | null = null;
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (user) {
@@ -49,21 +51,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         // Listen for profile changes (e.g. premium status)
-        const unsubProfile = onSnapshot(userRef, (doc) => {
+        unsubProfile = onSnapshot(userRef, (doc) => {
           if (doc.exists()) {
             setProfile(doc.data() as UserProfile);
           }
         });
 
         setLoading(false);
-        return () => unsubProfile();
       } else {
+        if (unsubProfile) {
+          unsubProfile();
+          unsubProfile = null;
+        }
         setProfile(null);
         setLoading(false);
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      if (unsubProfile) unsubProfile();
+    };
   }, []);
 
   const value = {

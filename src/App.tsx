@@ -32,9 +32,16 @@ export default function App() {
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [recipeToDelete, setRecipeToDelete] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pendingSaveRef = useRef(false);
 
   // Load recipes from Firestore on user change
   useEffect(() => {
+    if (user && pendingSaveRef.current) {
+      pendingSaveRef.current = false;
+      setShowAuthModal(false);
+      saveRecipe();
+    }
+
     if (!user) {
       setRecipes([]);
       return;
@@ -176,6 +183,7 @@ export default function App() {
 
   const saveRecipe = async () => {
     if (!user) {
+      pendingSaveRef.current = true;
       setShowAuthModal(true);
       return;
     }
@@ -657,14 +665,29 @@ export default function App() {
                 </div>
               ) : (
                 <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 md:p-8">
-                  <div className="mb-6 pb-6 border-b border-slate-100 flex justify-between items-center">
-                    <p className="text-slate-600 font-medium">Basée sur <span className="text-orange-600 font-bold">{selectedForMenu.size}</span> recette(s) sélectionnée(s).</p>
-                    <button 
-                      onClick={() => setSelectedForMenu(new Set())}
-                      className="text-sm text-slate-500 hover:text-slate-800 flex items-center gap-1"
-                    >
-                      Tout décocher
-                    </button>
+                  <div className="mb-6 pb-6 border-b border-slate-100">
+                    <div className="flex justify-between items-center mb-4">
+                      <p className="text-slate-600 font-medium">Basée sur <span className="text-orange-600 font-bold">{selectedForMenu.size}</span> recette(s) sélectionnée(s).</p>
+                      <button 
+                        onClick={() => setSelectedForMenu(new Set())}
+                        className="text-sm text-slate-500 hover:text-slate-800 flex items-center gap-1"
+                      >
+                        Tout décocher
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {recipes.filter(r => selectedForMenu.has(r.id)).map(recipe => (
+                        <div key={recipe.id} className="flex items-center gap-2 bg-orange-50 text-orange-900 px-3 py-1.5 rounded-xl text-sm font-medium border border-orange-100">
+                          {recipe.title}
+                          <button 
+                            onClick={() => toggleMenuSelection(recipe.id)}
+                            className="text-orange-400 hover:text-orange-600 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   
                   <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
@@ -677,7 +700,6 @@ export default function App() {
                             {items.map((item, i) => (
                               <div key={i} className="text-xs bg-white border border-orange-100 px-2 py-0.5 rounded-full text-slate-600 shadow-sm flex items-center gap-1.5">
                                 <span className="font-bold text-orange-800">{item.total} {item.unit}</span>
-                                <span className="text-[9px] opacity-50 uppercase tracking-tighter">({item.sources.join(', ')})</span>
                               </div>
                             ))}
                           </div>
