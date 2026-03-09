@@ -26,11 +26,27 @@ async function startServer() {
   } else {
     // Serve static files in production
     console.log("Production mode: serving static files from", distPath);
-    app.use(express.static(distPath));
+    app.use(express.static(distPath, {
+      setHeaders: (res, path) => {
+        if (path.endsWith('.html')) {
+          res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+          res.setHeader('Pragma', 'no-cache');
+          res.setHeader('Expires', '0');
+          res.setHeader('Surrogate-Control', 'no-store');
+        }
+      }
+    }));
     app.get("*", (req, res) => {
+      if (req.path.startsWith('/assets/')) {
+        return res.status(404).send('Asset not found');
+      }
       const indexPath = path.join(distPath, "index.html");
       console.log("Serving index.html from", indexPath);
       if (fs.existsSync(indexPath)) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.setHeader('Surrogate-Control', 'no-store');
         res.sendFile(indexPath);
       } else {
         res.status(404).send(`Build folder (dist) not found at ${indexPath}. Please run 'npm run build' first.`);
