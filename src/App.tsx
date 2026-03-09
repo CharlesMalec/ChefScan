@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, Link as LinkIcon, BookOpen, ShoppingCart, Plus, Loader2, Check, ChevronRight, Clock, ChefHat, X, Image as ImageIcon, LogOut, Mail, Lock, User, Tag, Trash2, Crown, Pencil, Save, Star, Sparkles } from 'lucide-react';
+import { Camera, Link as LinkIcon, BookOpen, ShoppingCart, Plus, Loader2, Check, ChevronRight, Clock, ChefHat, X, Image as ImageIcon, LogOut, Mail, Lock, User, Tag, Trash2, Crown, Pencil, Save, Star, Sparkles, Search } from 'lucide-react';
 import { analyzeRecipeImage, analyzeRecipeUrl } from './services/gemini';
 import { Recipe } from './types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -27,6 +27,7 @@ export default function App() {
   const [urlInput, setUrlInput] = useState('');
   const [scannedRecipe, setScannedRecipe] = useState<Recipe | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Recipe | null>(null);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
@@ -280,9 +281,14 @@ export default function App() {
   };
 
   const allTags = Array.from(new Set(recipes.flatMap(r => r.tags || []))).sort();
-  const filteredRecipes = selectedTag 
-    ? recipes.filter(r => r.tags?.includes(selectedTag))
-    : recipes;
+  const filteredRecipes = recipes.filter(r => {
+    const matchesTag = selectedTag ? r.tags?.includes(selectedTag) : true;
+    const matchesSearch = searchQuery 
+      ? r.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        r.ingredients.some(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      : true;
+    return matchesTag && matchesSearch;
+  });
 
   return (
     <div className="min-h-screen bg-[#F5F2ED] flex flex-col md:flex-row font-sans text-slate-900">
@@ -414,14 +420,27 @@ export default function App() {
             <motion.div key="library" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <h2 className="text-2xl font-semibold text-slate-800">Mes Recettes ({filteredRecipes.length})</h2>
-                {selectedForMenu.size > 0 && (
-                  <button 
-                    onClick={() => setActiveTab('list')}
-                    className="text-sm bg-orange-100 text-orange-700 px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-orange-200 transition-colors w-fit"
-                  >
-                    Voir la liste de courses ({selectedForMenu.size})
-                  </button>
-                )}
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                  <div className="relative flex-1 md:w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input 
+                      type="text" 
+                      placeholder="Rechercher une recette, un ingrédient..." 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                    />
+                  </div>
+                  {selectedForMenu.size > 0 && (
+                    <button 
+                      onClick={() => setActiveTab('list')}
+                      className="text-sm bg-orange-100 text-orange-700 px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-orange-200 transition-colors shrink-0"
+                    >
+                      <ShoppingCart className="w-4 h-4" />
+                      <span className="hidden sm:inline">Liste de courses</span> ({selectedForMenu.size})
+                    </button>
+                  )}
+                </div>
               </div>
 
               {allTags.length > 0 && (
@@ -865,40 +884,42 @@ export default function App() {
                 </div>
               </div>
               
-              <div className="p-8 md:p-12 grid md:grid-cols-5 gap-12">
-                <div className="md:col-span-2">
+              <div className={`p-8 md:p-12 ${isEditing ? 'flex flex-col gap-12' : 'grid md:grid-cols-5 gap-12'}`}>
+                <div className={isEditing ? '' : 'md:col-span-2'}>
                   <h3 className="font-serif font-bold text-2xl mb-8 flex items-center gap-3 text-slate-800 border-b border-orange-100 pb-4 italic">
                     <ShoppingCart className="w-6 h-6 text-orange-400" /> Ingrédients
                   </h3>
                   <ul className="space-y-5">
                     {isEditing && editForm ? (
-                      <div className="space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {editForm.ingredients.map((ing, idx) => (
-                          <div key={idx} className="flex gap-2 items-center">
+                          <div key={idx} className="flex gap-1.5 sm:gap-2 items-center bg-white p-2 rounded-xl border border-orange-200 shadow-sm focus-within:border-orange-400 focus-within:ring-1 focus-within:ring-orange-400 transition-all">
                             <input type="text" value={ing.name} onChange={e => {
                               const newIngs = [...editForm.ingredients];
                               newIngs[idx].name = e.target.value;
                               setEditForm({...editForm, ingredients: newIngs});
-                            }} className="flex-1 bg-white border border-orange-100 rounded-lg px-3 py-2 text-sm focus:outline-none" placeholder="Nom" />
+                            }} className="flex-1 min-w-0 bg-transparent px-1 sm:px-2 py-1 text-sm focus:outline-none font-medium text-slate-700" placeholder="Nom" />
+                            <div className="w-px h-6 bg-orange-100 shrink-0"></div>
                             <input type="text" value={ing.amount} onChange={e => {
                               const newIngs = [...editForm.ingredients];
                               newIngs[idx].amount = e.target.value;
                               setEditForm({...editForm, ingredients: newIngs});
-                            }} className="w-16 bg-white border border-orange-100 rounded-lg px-3 py-2 text-sm focus:outline-none" placeholder="Qté" />
+                            }} className="w-10 sm:w-12 min-w-0 shrink-0 bg-transparent px-1 py-1 text-sm focus:outline-none text-center text-slate-600" placeholder="Qté" />
+                            <div className="w-px h-6 bg-orange-100 shrink-0"></div>
                             <input type="text" value={ing.unit} onChange={e => {
                               const newIngs = [...editForm.ingredients];
                               newIngs[idx].unit = e.target.value;
                               setEditForm({...editForm, ingredients: newIngs});
-                            }} className="w-20 bg-white border border-orange-100 rounded-lg px-3 py-2 text-sm focus:outline-none" placeholder="Unité" />
+                            }} className="w-14 sm:w-16 min-w-0 shrink-0 bg-transparent px-1 py-1 text-sm focus:outline-none text-center text-slate-600" placeholder="Unité" />
                             <button onClick={() => {
                               const newIngs = editForm.ingredients.filter((_, i) => i !== idx);
                               setEditForm({...editForm, ingredients: newIngs});
-                            }} className="p-2 text-red-400 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                            }} className="p-1.5 shrink-0 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
                           </div>
                         ))}
                         <button onClick={() => {
                           setEditForm({...editForm, ingredients: [...editForm.ingredients, {name: '', amount: '', unit: ''}]});
-                        }} className="text-sm text-orange-600 font-bold flex items-center gap-1 mt-2 hover:text-orange-800"><Plus className="w-4 h-4" /> Ajouter un ingrédient</button>
+                        }} className="h-full min-h-[48px] border-2 border-dashed border-orange-200 rounded-xl text-sm text-orange-600 font-bold flex items-center justify-center gap-2 hover:bg-orange-50 hover:border-orange-300 transition-colors"><Plus className="w-4 h-4" /> Ajouter un ingrédient</button>
                       </div>
                     ) : (
                       viewingRecipe.ingredients.map((ing, idx) => (
@@ -914,7 +935,7 @@ export default function App() {
                   </ul>
                 </div>
 
-                <div className="md:col-span-3">
+                <div className={isEditing ? '' : 'md:col-span-3'}>
                   <h3 className="font-serif font-bold text-2xl mb-8 flex items-center gap-3 text-slate-800 border-b border-orange-100 pb-4 italic">
                     <ChefHat className="w-6 h-6 text-orange-400" /> Préparation
                   </h3>
@@ -922,8 +943,8 @@ export default function App() {
                     {isEditing && editForm ? (
                       <div className="space-y-4">
                         {editForm.steps.map((step, idx) => (
-                          <div key={idx} className="flex gap-3 items-start">
-                            <span className="font-serif font-bold text-2xl text-orange-300 mt-1">{idx + 1}.</span>
+                          <div key={idx} className="flex gap-4 items-start bg-white p-4 rounded-2xl border border-orange-200 shadow-sm focus-within:border-orange-400 focus-within:ring-1 focus-within:ring-orange-400 transition-all">
+                            <span className="font-serif font-bold text-2xl text-orange-300 shrink-0">{idx + 1}.</span>
                             <textarea 
                               value={step} 
                               onChange={e => {
@@ -931,18 +952,18 @@ export default function App() {
                                 newSteps[idx] = e.target.value;
                                 setEditForm({...editForm, steps: newSteps});
                               }} 
-                              className="flex-1 bg-white border border-orange-100 rounded-xl px-4 py-3 text-sm focus:outline-none min-h-[80px]" 
+                              className="flex-1 bg-transparent text-sm focus:outline-none min-h-[80px] resize-y text-slate-700 leading-relaxed" 
                               placeholder="Étape de préparation..."
                             />
                             <button onClick={() => {
                               const newSteps = editForm.steps.filter((_, i) => i !== idx);
                               setEditForm({...editForm, steps: newSteps});
-                            }} className="p-2 text-red-400 hover:bg-red-50 rounded-lg mt-1"><Trash2 className="w-4 h-4" /></button>
+                            }} className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors shrink-0"><Trash2 className="w-5 h-5" /></button>
                           </div>
                         ))}
                         <button onClick={() => {
                           setEditForm({...editForm, steps: [...editForm.steps, '']});
-                        }} className="text-sm text-orange-600 font-bold flex items-center gap-1 mt-2 hover:text-orange-800"><Plus className="w-4 h-4" /> Ajouter une étape</button>
+                        }} className="w-full py-4 border-2 border-dashed border-orange-200 rounded-2xl text-sm text-orange-600 font-bold flex items-center justify-center gap-2 hover:bg-orange-50 hover:border-orange-300 transition-colors"><Plus className="w-5 h-5" /> Ajouter une étape</button>
                       </div>
                     ) : (
                       viewingRecipe.steps.map((step, idx) => (
