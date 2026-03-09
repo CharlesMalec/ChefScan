@@ -21,9 +21,13 @@ const recipeSchema = {
     steps: {
       type: Type.ARRAY,
       items: { type: Type.STRING, description: "Étape de préparation" }
+    },
+    tags: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING, description: "Tags suggérés (ex: Végétarien, Sans Gluten, Rapide, Dessert, Entrée, Plat, etc.)" }
     }
   },
-  required: ["title", "ingredients", "steps"]
+  required: ["title", "ingredients", "steps", "tags"]
 };
 
 function getAI() {
@@ -51,7 +55,7 @@ export async function analyzeRecipeImage(base64Image: string, mimeType: string) 
             }
           },
           {
-            text: "Analyse cette image de recette de cuisine. Extrais toutes les informations demandées dans le schéma JSON. Si une information manque, déduis-la ou laisse vide."
+            text: "Analyse cette image de recette de cuisine. Extrais toutes les informations demandées dans le schéma JSON. Suggère au moins 3-5 tags pertinents (catégorie, régime, temps, etc.). Si une information manque, déduis-la ou laisse vide."
           }
         ]
       },

@@ -6,6 +6,7 @@ export interface Ingredient {
 
 export interface Recipe {
   id: string;
+  userId: string;
   title: string;
   ingredients: Ingredient[];
   steps: string[];
@@ -14,4 +15,15 @@ export interface Recipe {
   complexity: string;
   source: 'Livre' | 'Web';
   sourceUrl?: string;
+  tags: string[];
+  createdAt: number;
+}
+
+export interface UserProfile {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  isPremium: boolean;
+  recipeCount: number;
 }
