@@ -148,6 +148,31 @@ export default function App() {
     }
   };
 
+  const handleManageSubscription = async () => {
+    if (!user) return;
+    try {
+      setLoading(true);
+      const portalSessionRef = await addDoc(
+        collection(db, 'customers', user.uid, 'createPortalLink'),
+        { return_url: window.location.origin }
+      );
+      onSnapshot(portalSessionRef, (snap) => {
+        const { error, url } = snap.data() || {};
+        if (error) {
+          alert(`Erreur : ${error.message}`);
+          setLoading(false);
+        }
+        if (url) {
+          window.location.assign(url);
+        }
+      });
+    } catch (err: any) {
+      console.error('Erreur Portail:', err);
+      alert("Erreur lors de la redirection : " + err.message);
+      setLoading(false);
+    }
+  };
+
   const handleUpdateRecipe = async () => {
     if (!editForm || !user) return;
     try {
@@ -366,9 +391,13 @@ export default function App() {
           )}
           {user ? (
             <div className="flex items-center gap-2">
-              {!isPremium && (
+              {!isPremium ? (
                 <button onClick={() => setShowPremiumModal(true)} className="px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-600 text-white text-xs font-bold rounded-full shadow-md flex items-center gap-1">
                   <Crown className="w-3 h-3" /> Premium
+                </button>
+              ) : (
+                <button onClick={handleManageSubscription} disabled={loading} className="px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-full shadow-md flex items-center gap-1 disabled:opacity-70">
+                  {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Crown className="w-3 h-3" />} Gérer
                 </button>
               )}
               <button onClick={handleLogout} className="p-2 text-orange-900">
@@ -420,12 +449,20 @@ export default function App() {
         <div className="mt-auto pt-8 border-t border-orange-50">
           {user ? (
             <div className="flex flex-col gap-4">
-              {!isPremium && (
+              {!isPremium ? (
                 <button 
                   onClick={() => setShowPremiumModal(true)}
                   className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-400 to-orange-600 text-white px-4 py-3 rounded-2xl font-bold shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 transition-all hover:-translate-y-0.5"
                 >
                   <Star className="w-4 h-4 fill-current" /> Passer Premium
+                </button>
+              ) : (
+                <button 
+                  onClick={handleManageSubscription}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-2 bg-slate-900 text-white px-4 py-3 rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition-all hover:-translate-y-0.5 disabled:opacity-70"
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" />} Gérer l'abonnement
                 </button>
               )}
               <div className="flex items-center gap-3 px-2">
