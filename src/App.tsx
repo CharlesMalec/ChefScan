@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, Link as LinkIcon, BookOpen, ShoppingCart, Plus, Loader2, Check, ChevronRight, Clock, ChefHat, X, Image as ImageIcon, LogOut, Mail, Lock, User, Tag, Trash2, Crown, Pencil, Save, Star, Sparkles, Search } from 'lucide-react';
+import { Camera, Link as LinkIcon, BookOpen, ShoppingCart, Plus, Loader2, Check, ChevronRight, Clock, ChefHat, X, Image as ImageIcon, LogOut, Mail, Lock, User, Tag, Trash2, Crown, Pencil, Save, Star, Sparkles, Search, Filter, ChevronDown } from 'lucide-react';
 import { analyzeRecipeImage, analyzeRecipeUrl } from './services/gemini';
 import { getIngredientEmoji } from './utils';
 import { Recipe } from './types';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from './contexts/AuthContext';
-import { auth, db, googleProvider } from './services/firebase';
+import { auth, db, googleProvider, app } from './services/firebase';
 import { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, updateDoc, increment, orderBy, serverTimestamp } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 export default function App() {
   const { user, profile, isPremium } = useAuth();
@@ -152,23 +153,20 @@ export default function App() {
     if (!user) return;
     try {
       setLoading(true);
-      const portalSessionRef = await addDoc(
-        collection(db, 'customers', user.uid, 'createPortalLink'),
-        { return_url: window.location.origin }
-      );
-      onSnapshot(portalSessionRef, (snap) => {
-        const { error, url } = snap.data() || {};
-        if (error) {
-          alert(`Erreur : ${error.message}`);
-          setLoading(false);
-        }
-        if (url) {
-          window.location.assign(url);
-        }
-      });
+      // Par défaut, Firebase déploie les extensions sur us-central1. 
+      // Si votre extension est sur une autre région (ex: europe-west1), modifiez la ligne ci-dessous :
+      const functions = getFunctions(app, 'europe-west1'); // ou 'us-central1'
+      const functionRef = httpsCallable(functions, 'ext-firestore-stripe-payments-createPortalLink');
+      const { data } = await functionRef({ returnUrl: window.location.origin });
+      
+      if ((data as any)?.url) {
+        window.location.assign((data as any).url);
+      } else {
+        throw new Error("Aucune URL retournée par Stripe");
+      }
     } catch (err: any) {
       console.error('Erreur Portail:', err);
-      alert("Erreur lors de la redirection : " + err.message);
+      alert("Erreur lors de la redirection vers le portail : " + err.message + "\nAssurez-vous que l'extension Stripe est bien configurée.");
       setLoading(false);
     }
   };
@@ -367,7 +365,8 @@ export default function App() {
     const matchesTag = selectedTag ? r.tags?.includes(selectedTag) : true;
     const matchesSearch = searchQuery 
       ? r.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        r.ingredients.some(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        r.ingredients.some(i => i.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        r.tags?.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()))
       : true;
     return matchesTag && matchesSearch;
   });
@@ -507,28 +506,55 @@ export default function App() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 max-w-7xl mx-auto w-full">
+      <main className="flex-1 min-w-0 p-4 md:p-8 pb-24 md:pb-8 max-w-7xl mx-auto w-full">
         <AnimatePresence mode="wait">
           {/* LIBRARY TAB */}
           {activeTab === 'library' && (
             <motion.div key="library" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                <h2 className="text-2xl font-semibold text-slate-800">Mes Recettes ({filteredRecipes.length})</h2>
-                <div className="flex items-center gap-3 w-full md:w-auto">
-                  <div className="relative flex-1 md:w-64">
+              <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-8">
+                <h2 className="text-2xl font-semibold text-slate-800 shrink-0">Mes Recettes ({filteredRecipes.length})</h2>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:w-auto">
+                  <div className="relative flex-1 sm:w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input 
                       type="text" 
-                      placeholder="Rechercher une recette, un ingrédient..." 
+                      placeholder="Rechercher (titre, ingrédient, tag)..." 
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                     />
                   </div>
+                  
+                  {allTags.length > 0 && (
+                    <div className="relative shrink-0">
+                      <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                      <input
+                        list="tag-options"
+                        value={selectedTag || ''}
+                        onChange={(e) => setSelectedTag(e.target.value || null)}
+                        placeholder="Filtrer par tag..."
+                        className="w-full sm:w-48 pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 text-slate-700 font-medium"
+                      />
+                      <datalist id="tag-options">
+                        {allTags.map(tag => (
+                          <option key={tag} value={tag} />
+                        ))}
+                      </datalist>
+                      {selectedTag && (
+                        <button 
+                          onClick={() => setSelectedTag(null)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 bg-white text-slate-400 hover:text-slate-600"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+
                   {selectedForMenu.size > 0 && (
                     <button 
                       onClick={() => setActiveTab('list')}
-                      className="text-sm bg-orange-100 text-orange-700 px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-orange-200 transition-colors shrink-0"
+                      className="text-sm bg-orange-100 text-orange-700 px-4 py-2 rounded-full font-medium flex items-center justify-center gap-2 hover:bg-orange-200 transition-colors shrink-0"
                     >
                       <ShoppingCart className="w-4 h-4" />
                       <span className="hidden sm:inline">Liste de courses</span> ({selectedForMenu.size})
@@ -536,26 +562,6 @@ export default function App() {
                   )}
                 </div>
               </div>
-
-              {allTags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-8">
-                  <button 
-                    onClick={() => setSelectedTag(null)}
-                    className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all ${!selectedTag ? 'bg-orange-700 text-white' : 'bg-white text-slate-500 border border-slate-100 hover:bg-slate-50'}`}
-                  >
-                    Tout
-                  </button>
-                  {allTags.map(tag => (
-                    <button 
-                      key={tag}
-                      onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
-                      className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${selectedTag === tag ? 'bg-orange-700 text-white' : 'bg-white text-slate-500 border border-slate-100 hover:bg-slate-50'}`}
-                    >
-                      <Tag className="w-3.5 h-3.5" /> {tag}
-                    </button>
-                  ))}
-                </div>
-              )}
 
               {recipes.length === 0 ? (
                 <div className="text-center py-20 px-4 max-w-md mx-auto">
@@ -572,7 +578,7 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 max-w-lg mx-auto lg:max-w-none">
                   {filteredRecipes.map(recipe => (
                     <div 
                       key={recipe.id} 
