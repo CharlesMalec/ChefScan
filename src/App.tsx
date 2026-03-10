@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Camera, Link as LinkIcon, BookOpen, ShoppingCart, Plus, Loader2, Check, ChevronRight, Clock, ChefHat, X, Image as ImageIcon, LogOut, Mail, Lock, User, Tag, Trash2, Crown, Pencil, Save, Star, Sparkles, Search } from 'lucide-react';
 import { analyzeRecipeImage, analyzeRecipeUrl } from './services/gemini';
+import { getIngredientEmoji } from './utils';
 import { Recipe } from './types';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from './contexts/AuthContext';
@@ -34,6 +35,21 @@ export default function App() {
   const [recipeToDelete, setRecipeToDelete] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingSaveRef = useRef(false);
+
+  // Stripe Success/Cancel handling
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    if (query.get("success")) {
+      alert("Paiement réussi ! Vous êtes maintenant Premium 🎉");
+      // Clean up URL
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+    if (query.get("canceled")) {
+      alert("Paiement annulé. Vous pouvez réessayer quand vous le souhaitez.");
+      // Clean up URL
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, []);
 
   // Load recipes from Firestore on user change
   useEffect(() => {
@@ -90,6 +106,47 @@ export default function App() {
   };
 
   const handleLogout = () => signOut(auth);
+
+  const handleStripeCheckout = async () => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      
+      // Add a document to the checkout_sessions subcollection of the user's customer document
+      const checkoutSessionRef = await addDoc(
+        collection(db, 'customers', user.uid, 'checkout_sessions'),
+        {
+          // We need the Price ID from the Stripe Dashboard
+          // The user will need to replace this with their actual Price ID
+          price: 'price_1T9RstBCaCCfPENPfnrGiyDa', // TODO: Remplacer par le vrai Price ID de Stripe
+          success_url: window.location.origin + '?success=true',
+          cancel_url: window.location.origin + '?canceled=true',
+        }
+      );
+
+      // Wait for the CheckoutSession to get attached by the extension
+      onSnapshot(checkoutSessionRef, (snap) => {
+        const { error, url } = snap.data() || {};
+        if (error) {
+          alert(`Une erreur est survenue : ${error.message}`);
+          setLoading(false);
+        }
+        if (url) {
+          // We have a Stripe Checkout URL, let's redirect.
+          window.location.assign(url);
+        }
+      });
+
+    } catch (err: any) {
+      console.error('Erreur Stripe:', err);
+      alert("Une erreur est survenue lors de la redirection vers Stripe: " + err.message);
+      setLoading(false);
+    }
+  };
 
   const handleUpdateRecipe = async () => {
     if (!editForm || !user) return;
@@ -629,7 +686,10 @@ export default function App() {
                       <ul className="space-y-3">
                         {scannedRecipe.ingredients.map((ing, idx) => (
                           <li key={idx} className="text-sm flex justify-between border-b border-slate-100 pb-2">
-                            <span className="text-slate-700">{ing.name}</span>
+                            <span className="text-slate-700 flex items-center gap-2">
+                              <span>{getIngredientEmoji(ing.name)}</span>
+                              {ing.name}
+                            </span>
                             <span className="font-semibold text-slate-900">{ing.amount} {ing.unit}</span>
                           </li>
                         ))}
@@ -714,7 +774,10 @@ export default function App() {
                       <div key={idx} className="flex items-start gap-3 p-3 hover:bg-orange-50/50 rounded-2xl transition-all group border border-transparent hover:border-orange-100">
                         <input type="checkbox" className="w-5 h-5 rounded border-orange-200 text-orange-800 focus:ring-orange-800 mt-0.5 cursor-pointer" />
                         <div className="flex-1">
-                          <p className="font-serif font-bold text-lg text-slate-800 capitalize leading-tight">{ingredient}</p>
+                          <p className="font-serif font-bold text-lg text-slate-800 capitalize leading-tight">
+                            <span className="mr-2">{getIngredientEmoji(ingredient)}</span>
+                            {ingredient}
+                          </p>
                           <div className="flex flex-wrap gap-1.5 mt-1.5">
                             {items.map((item, i) => (
                               <div key={i} className="text-xs bg-white border border-orange-100 px-2 py-0.5 rounded-full text-slate-600 shadow-sm flex items-center gap-1.5">
@@ -790,11 +853,16 @@ export default function App() {
                   {!isEditing ? (
                     <button 
                       onClick={() => {
+                        if (!isPremium) {
+                          setShowPremiumModal(true);
+                          return;
+                        }
                         setEditForm(viewingRecipe);
                         setIsEditing(true);
                       }}
-                      className="text-slate-400 hover:text-orange-900 bg-white rounded-full p-3 shadow-sm transition-all hover:scale-110 active:scale-90"
+                      className="text-slate-400 hover:text-orange-900 bg-white rounded-full p-3 shadow-sm transition-all hover:scale-110 active:scale-90 relative"
                     >
+                      {!isPremium && <Crown className="w-3 h-3 absolute -top-1 -right-1 text-orange-500" />}
                       <Pencil className="w-5 h-5" />
                     </button>
                   ) : (
@@ -924,7 +992,10 @@ export default function App() {
                     ) : (
                       viewingRecipe.ingredients.map((ing, idx) => (
                         <li key={idx} className="flex justify-between items-center group">
-                          <span className="text-slate-700 font-serif italic text-lg capitalize">{ing.name}</span>
+                          <span className="text-slate-700 font-serif italic text-lg capitalize flex items-center gap-2">
+                            <span>{getIngredientEmoji(ing.name)}</span>
+                            {ing.name}
+                          </span>
                           <div className="flex items-center gap-3">
                             <span className="h-px w-6 bg-orange-100 group-hover:w-10 transition-all"></span>
                             <span className="font-bold text-orange-900 bg-orange-100/30 px-3 py-1 rounded-xl text-sm">{ing.amount} {ing.unit}</span>
@@ -1100,7 +1171,7 @@ export default function App() {
               initial={{ scale: 0.9, y: 20 }} 
               animate={{ scale: 1, y: 0 }} 
               exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl relative"
+              className="bg-white w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl relative max-h-[95vh] overflow-y-auto"
               onClick={e => e.stopPropagation()}
             >
               <button 
@@ -1110,16 +1181,16 @@ export default function App() {
                 <X className="w-5 h-5" />
               </button>
               
-              <div className="bg-gradient-to-br from-orange-400 to-orange-600 p-8 text-center relative overflow-hidden">
+              <div className="bg-gradient-to-br from-orange-400 to-orange-600 p-6 sm:p-8 text-center relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-                <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-md shadow-inner border border-white/30">
-                  <Star className="w-10 h-10 text-white fill-current" />
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 backdrop-blur-md shadow-inner border border-white/30">
+                  <Star className="w-8 h-8 sm:w-10 sm:h-10 text-white fill-current" />
                 </div>
-                <h2 className="text-3xl font-serif font-bold text-white mb-2 relative z-10">ChefScan Premium</h2>
-                <p className="text-orange-100 font-medium relative z-10">Libérez tout le potentiel de votre cuisine</p>
+                <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white mb-2 relative z-10">ChefScan Premium</h2>
+                <p className="text-orange-100 font-medium relative z-10 text-sm sm:text-base">Libérez tout le potentiel de votre cuisine</p>
               </div>
 
-              <div className="p-8">
+              <div className="p-6 sm:p-8">
                 <ul className="space-y-4 mb-8">
                   <li className="flex items-start gap-3">
                     <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center shrink-0 mt-0.5">
@@ -1139,25 +1210,19 @@ export default function App() {
                       <p className="text-sm text-slate-500">Modifiez les ingrédients, les étapes et les tags de vos recettes scannées.</p>
                     </div>
                   </li>
-                  <li className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center shrink-0 mt-0.5">
-                      <Check className="w-3.5 h-3.5 text-orange-600" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-800">Export PDF & Partage</p>
-                      <p className="text-sm text-slate-500">Générez de superbes fiches recettes PDF et partagez-les avec vos proches.</p>
-                    </div>
-                  </li>
                 </ul>
 
                 <button 
-                  onClick={() => {
-                    alert("L'intégration Stripe sera bientôt disponible !");
-                    setShowPremiumModal(false);
-                  }}
-                  className="w-full py-4 rounded-2xl bg-slate-900 text-white font-bold shadow-xl shadow-slate-900/20 hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                  onClick={handleStripeCheckout}
+                  disabled={loading}
+                  className="w-full py-4 rounded-2xl bg-slate-900 text-white font-bold shadow-xl shadow-slate-900/20 hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
                 >
-                  <Sparkles className="w-5 h-5" /> S'abonner pour 2.99€/mois
+                  {loading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-5 h-5" />
+                  )}
+                  {loading ? 'Redirection...' : "S'abonner pour 4.99€/mois"}
                 </button>
                 <p className="text-center text-xs text-slate-400 mt-4">Sans engagement, annulez à tout moment.</p>
               </div>

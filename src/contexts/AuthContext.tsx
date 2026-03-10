@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot, collection, query, where } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
 import { UserProfile } from '../types';
 
@@ -23,10 +23,12 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isPremium, setIsPremium] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let unsubProfile: (() => void) | null = null;
+    let unsubSubscriptions: (() => void) | null = null;
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
@@ -50,11 +52,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setProfile(userSnap.data() as UserProfile);
         }
 
-        // Listen for profile changes (e.g. premium status)
+        // Listen for profile changes
         unsubProfile = onSnapshot(userRef, (doc) => {
           if (doc.exists()) {
             setProfile(doc.data() as UserProfile);
           }
+        });
+
+        // Listen for Stripe subscriptions
+        const subscriptionsRef = collection(db, 'customers', user.uid, 'subscriptions');
+        const q = query(subscriptionsRef, where('status', 'in', ['trialing', 'active']));
+        unsubSubscriptions = onSnapshot(q, (snapshot) => {
+          setIsPremium(!snapshot.empty);
         });
 
         setLoading(false);
@@ -63,7 +72,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           unsubProfile();
           unsubProfile = null;
         }
+        if (unsubSubscriptions) {
+          unsubSubscriptions();
+          unsubSubscriptions = null;
+        }
         setProfile(null);
+        setIsPremium(false);
         setLoading(false);
       }
     });
@@ -71,6 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       unsubscribe();
       if (unsubProfile) unsubProfile();
+      if (unsubSubscriptions) unsubSubscriptions();
     };
   }, []);
 
@@ -78,7 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     profile,
     loading,
-    isPremium: profile?.isPremium || false,
+    isPremium,
   };
 
   return (
