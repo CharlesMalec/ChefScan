@@ -851,13 +851,15 @@ export default function App() {
                             <span className="mr-2">{getIngredientEmoji(ingredient)}</span>
                             {ingredient}
                           </p>
-                          <div className="flex flex-wrap gap-1.5 mt-1.5">
-                            {items.map((item, i) => (
-                              <div key={i} className="text-xs bg-white border border-orange-100 px-2 py-0.5 rounded-full text-slate-600 shadow-sm flex items-center gap-1.5">
-                                <span className="font-bold text-orange-800">{item.total} {item.unit}</span>
-                              </div>
-                            ))}
-                          </div>
+                          {items.some(item => item.total > 0) && (
+                            <div className="flex flex-wrap gap-1.5 mt-1.5">
+                              {items.filter(item => item.total > 0).map((item, i) => (
+                                <div key={i} className="text-xs bg-white border border-orange-100 px-2 py-0.5 rounded-full text-slate-600 shadow-sm flex items-center gap-1.5">
+                                  <span className="font-bold text-orange-800">{Number(item.total.toFixed(2))} {item.unit}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -1129,10 +1131,12 @@ export default function App() {
                             <span>{getIngredientEmoji(ing.name)}</span>
                             {ing.name}
                           </span>
-                          <div className="flex items-center gap-3">
-                            <span className="h-px w-6 bg-orange-100 group-hover:w-10 transition-all"></span>
-                            <span className="font-bold text-orange-900 bg-orange-100/30 px-3 py-1 rounded-xl text-sm">{ing.amount} {ing.unit}</span>
-                          </div>
+                          {((ing.amount && ing.amount !== '0') || ing.unit) && (
+                            <div className="flex items-center gap-3">
+                              <span className="h-px w-6 bg-orange-100 group-hover:w-10 transition-all"></span>
+                              <span className="font-bold text-orange-900 bg-orange-100/30 px-3 py-1 rounded-xl text-sm">{ing.amount} {ing.unit}</span>
+                            </div>
+                          )}
                         </li>
                       ))
                     )}
