@@ -80,6 +80,8 @@ export default function App() {
         ...doc.data()
       })) as Recipe[];
       setRecipes(data);
+    }, (error) => {
+      console.error('Firestore Error (Recipes):', error);
     });
 
     return () => unsubscribe();
@@ -143,6 +145,9 @@ export default function App() {
           // We have a Stripe Checkout URL, let's redirect.
           window.location.assign(url);
         }
+      }, (error) => {
+        console.error('Firestore Error (Checkout):', error);
+        setLoading(false);
       });
 
     } catch (err: any) {

@@ -57,6 +57,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (doc.exists()) {
             setProfile(doc.data() as UserProfile);
           }
+        }, (error) => {
+          console.error('Firestore Error (Profile):', error);
         });
 
         // Listen for Stripe subscriptions
@@ -64,6 +66,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const q = query(subscriptionsRef, where('status', 'in', ['trialing', 'active']));
         unsubSubscriptions = onSnapshot(q, (snapshot) => {
           setIsPremium(!snapshot.empty);
+        }, (error) => {
+          console.error('Firestore Error (Subscriptions):', error);
         });
 
         setLoading(false);
