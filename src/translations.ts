@@ -23,7 +23,10 @@ export const translations = {
     shopping: {
       title: "Liste de courses",
       empty: "Sélectionnez des recettes dans votre bibliothèque pour générer votre liste de courses.",
-      uncheckAll: "Tout décocher"
+      uncheckAll: "Tout décocher",
+      viewRecipes: "Voir mes recettes",
+      basedOn: "Basée sur",
+      recipesSelected: "recette(s) sélectionnée(s)."
     },
     library: {
       title: "Mes Recettes",
@@ -31,21 +34,73 @@ export const translations = {
       allTags: "Tous les tags",
       noRecipes: "Aucune recette trouvée",
       startAdding: "Commencez par ajouter votre première recette !",
-      addFirst: "Ajouter une recette"
+      filterByTag: "Filtrer par tag...",
+      shoppingList: "Liste de courses",
+      emptyTitle: "Votre bibliothèque est vide",
+      emptyDesc: "Commencez par scanner un livre de cuisine ou importer un lien depuis un site web pour créer votre collection.",
+      addFirst: "Ajouter ma première recette"
+    },
+    scan: {
+      title: "Ajouter une recette",
+      subtitle: "Choisissez votre méthode préférée pour importer une nouvelle recette dans votre bibliothèque.",
+      bookTitle: "Scanner un livre",
+      bookDesc: "Prenez en photo la page de votre livre de cuisine préféré.",
+      takePhoto: "Prendre une photo",
+      analyzing: "Analyse...",
+      webTitle: "Importer du web",
+      webDesc: "Collez le lien d'un blog ou d'un site de cuisine.",
+      importLink: "Importer le lien",
+      previewTitle: "Aperçu de l'extraction IA",
+      prep: "Préparation",
+      cook: "Cuisson",
+      complexity: "Difficulté",
+      ingredients: "Ingrédients",
+      steps: "Préparation",
+      save: "Ajouter à ma bibliothèque",
+      tags: "Tags",
+      separated: "séparés par des virgules",
+      addIngredient: "Ajouter un ingrédient"
     },
     settings: {
       title: "Paramètres",
       language: "Langue",
       account: "Compte",
       logout: "Déconnexion",
-      login: "Se connecter"
+      login: "Se connecter",
+      cancel: "Annuler",
+      delete: "Supprimer",
+      deleteTitle: "Supprimer la recette ?",
+      deleteDesc: "Cette action est définitive et ne peut pas être annulée.",
+      addToMenu: "Ajouter au menu",
+      removeFromMenu: "Retirer du menu"
+    },
+    auth: {
+      login: "Connexion",
+      signup: "Inscription",
+      google: "Continuer avec Google",
+      or: "ou",
+      email: "Email",
+      password: "Mot de passe",
+      noAccount: "Pas encore de compte ?",
+      hasAccount: "Déjà un compte ?",
+      signIn: "Se connecter",
+      signUp: "S'inscrire"
+    },
+    premium: {
+      unlimited: "Recettes illimitées",
+      unlimitedDesc: "Sauvegardez autant de recettes que vous le souhaitez (limité à 10 en gratuit).",
+      advanced: "Modification avancée",
+      advancedDesc: "Modifiez les ingrédients, les étapes et les tags de vos recettes scannées.",
+      subscribe: "S'abonner pour 4.99€/mois",
+      redirecting: "Redirection...",
+      noCommitment: "Sans engagement, annulez à tout moment."
     }
   },
   en: {
     nav: {
       recipes: "My Recipes",
       add: "Add",
-      shopping: "Groceries",
+      shopping: "Shopping List",
       about: "Our Story",
       premium: "Premium",
       manage: "Manage",
@@ -63,7 +118,10 @@ export const translations = {
     shopping: {
       title: "Shopping List",
       empty: "Select recipes in your library to generate your shopping list.",
-      uncheckAll: "Uncheck all"
+      uncheckAll: "Uncheck all",
+      viewRecipes: "View my recipes",
+      basedOn: "Based on",
+      recipesSelected: "recipe(s) selected."
     },
     library: {
       title: "My Recipes",
@@ -71,14 +129,66 @@ export const translations = {
       allTags: "All tags",
       noRecipes: "No recipes found",
       startAdding: "Start by adding your first recipe!",
-      addFirst: "Add a recipe"
+      filterByTag: "Filter by tag...",
+      shoppingList: "Shopping list",
+      emptyTitle: "Your library is empty",
+      emptyDesc: "Start by scanning a cookbook or importing a link from a website to create your collection.",
+      addFirst: "Add my first recipe"
+    },
+    scan: {
+      title: "Add a recipe",
+      subtitle: "Choose your preferred method to import a new recipe into your library.",
+      bookTitle: "Scan a book",
+      bookDesc: "Take a photo of the page from your favorite cookbook.",
+      takePhoto: "Take a photo",
+      analyzing: "Analyzing...",
+      webTitle: "Import from web",
+      webDesc: "Paste the link of a blog or cooking site.",
+      importLink: "Import link",
+      previewTitle: "AI Extraction Preview",
+      prep: "Prep",
+      cook: "Cook",
+      complexity: "Complexity",
+      ingredients: "Ingredients",
+      steps: "Preparation",
+      save: "Add to my library",
+      tags: "Tags",
+      separated: "separated by commas",
+      addIngredient: "Add an ingredient"
     },
     settings: {
       title: "Settings",
       language: "Language",
       account: "Account",
       logout: "Log out",
-      login: "Log in"
+      login: "Log in",
+      cancel: "Cancel",
+      delete: "Delete",
+      deleteTitle: "Delete recipe?",
+      deleteDesc: "This action is permanent and cannot be undone.",
+      addToMenu: "Add to menu",
+      removeFromMenu: "Remove from menu"
+    },
+    auth: {
+      login: "Login",
+      signup: "Sign up",
+      google: "Continue with Google",
+      or: "or",
+      email: "Email",
+      password: "Password",
+      noAccount: "Don't have an account?",
+      hasAccount: "Already have an account?",
+      signIn: "Sign in",
+      signUp: "Sign up"
+    },
+    premium: {
+      unlimited: "Unlimited recipes",
+      unlimitedDesc: "Save as many recipes as you want (limited to 10 for free).",
+      advanced: "Advanced editing",
+      advancedDesc: "Edit ingredients, steps, and tags of your scanned recipes.",
+      subscribe: "Subscribe for €4.99/month",
+      redirecting: "Redirecting...",
+      noCommitment: "No commitment, cancel anytime."
     }
   }
 };

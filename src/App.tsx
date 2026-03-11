@@ -562,7 +562,7 @@ export default function App() {
                         list="tag-options"
                         value={selectedTag || ''}
                         onChange={(e) => setSelectedTag(e.target.value || null)}
-                        placeholder="Filtrer par tag..."
+                        placeholder={t('library.filterByTag')}
                         className="w-full sm:w-48 pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 text-slate-700 font-medium"
                       />
                       <datalist id="tag-options">
@@ -587,7 +587,7 @@ export default function App() {
                       className="text-sm bg-orange-100 text-orange-700 px-4 py-2 rounded-full font-medium flex items-center justify-center gap-2 hover:bg-orange-200 transition-colors shrink-0"
                     >
                       <ShoppingCart className="w-4 h-4" />
-                      <span className="hidden sm:inline">Liste de courses</span> ({selectedForMenu.size})
+                      <span className="hidden sm:inline">{t('library.shoppingList')}</span> ({selectedForMenu.size})
                     </button>
                   )}
                 </div>
@@ -598,13 +598,13 @@ export default function App() {
                   <div className="w-24 h-24 bg-orange-100 text-orange-700 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
                     <BookOpen className="w-12 h-12" />
                   </div>
-                  <h3 className="text-2xl font-serif font-bold text-slate-800 mb-4">Votre bibliothèque est vide</h3>
-                  <p className="text-slate-500 mb-10 leading-relaxed">Commencez par scanner un livre de cuisine ou importer un lien depuis un site web pour créer votre collection.</p>
+                  <h3 className="text-2xl font-serif font-bold text-slate-800 mb-4">{t('library.emptyTitle')}</h3>
+                  <p className="text-slate-500 mb-10 leading-relaxed">{t('library.emptyDesc')}</p>
                   <button 
                     onClick={() => setActiveTab('scan')}
                     className="bg-orange-800 hover:bg-orange-900 transition-all text-white px-10 py-4 rounded-2xl font-bold shadow-xl shadow-orange-900/20 active:scale-95"
                   >
-                    Ajouter ma première recette
+                    {t('library.addFirst')}
                   </button>
                 </div>
               ) : (
@@ -663,8 +663,8 @@ export default function App() {
               {!scannedRecipe ? (
                 <div className="space-y-12">
                   <div className="text-center max-w-xl mx-auto mb-12">
-                    <h2 className="text-4xl font-serif font-bold text-slate-900 mb-4">Ajouter une recette</h2>
-                    <p className="text-slate-500 text-lg">Choisissez votre méthode préférée pour importer une nouvelle recette dans votre bibliothèque.</p>
+                    <h2 className="text-4xl font-serif font-bold text-slate-900 mb-4">{t('scan.title')}</h2>
+                    <p className="text-slate-500 text-lg">{t('scan.subtitle')}</p>
                   </div>
                   
                   <div className="grid md:grid-cols-2 gap-8">
@@ -673,8 +673,8 @@ export default function App() {
                       <div className="w-24 h-24 bg-orange-50 text-orange-600 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
                         <Camera className="w-12 h-12" />
                       </div>
-                      <h3 className="font-serif font-bold text-2xl mb-3 text-slate-900">Scanner un livre</h3>
-                      <p className="text-slate-500 mb-10 leading-relaxed">Prenez en photo la page de votre livre de cuisine préféré.</p>
+                      <h3 className="font-serif font-bold text-2xl mb-3 text-slate-900">{t('scan.bookTitle')}</h3>
+                      <p className="text-slate-500 mb-10 leading-relaxed">{t('scan.bookDesc')}</p>
                       
                       <input 
                         type="file" 
@@ -690,18 +690,18 @@ export default function App() {
                         onClick={() => fileInputRef.current?.click()}
                         className="w-full bg-orange-600 hover:bg-orange-700 transition-all text-white py-4 rounded-2xl font-bold shadow-lg shadow-orange-600/20 flex items-center justify-center gap-3 disabled:opacity-70 active:scale-[0.98]"
                       >
-                        {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Analyse...</> : <><ImageIcon className="w-5 h-5" /> Prendre une photo</>}
+                        {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> {t('scan.analyzing')}</> : <><ImageIcon className="w-5 h-5" /> {t('scan.takePhoto')}</>}
                       </button>
                     </div>
- 
+
                     {/* URL Import */}
                     <div className="bg-white p-10 rounded-[32px] shadow-sm border border-slate-100 flex flex-col items-center justify-center hover:border-blue-200 transition-all hover:shadow-xl hover:shadow-blue-500/5 group">
                       <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
                         <LinkIcon className="w-12 h-12" />
                       </div>
-                      <h3 className="font-serif font-bold text-2xl mb-3 text-slate-900">Importer du web</h3>
-                      <p className="text-slate-500 mb-10 leading-relaxed">Collez le lien d'un blog ou d'un site de cuisine.</p>
- 
+                      <h3 className="font-serif font-bold text-2xl mb-3 text-slate-900">{t('scan.webTitle')}</h3>
+                      <p className="text-slate-500 mb-10 leading-relaxed">{t('scan.webDesc')}</p>
+
                       <form 
                         onSubmit={(e) => { e.preventDefault(); handleUrlSubmit(); }}
                         className="flex flex-col gap-4 w-full"
@@ -718,7 +718,7 @@ export default function App() {
                           disabled={loading || !urlInput}
                           className="w-full bg-slate-900 hover:bg-slate-800 transition-all text-white py-4 rounded-2xl font-bold shadow-lg shadow-slate-900/20 disabled:opacity-50 flex items-center justify-center gap-3 active:scale-[0.98]"
                         >
-                          {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><ChevronRight className="w-5 h-5" /> Importer le lien</>}
+                          {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><ChevronRight className="w-5 h-5" /> {t('scan.importLink')}</>}
                         </button>
                       </form>
                     </div>
@@ -731,7 +731,7 @@ export default function App() {
                     <button onClick={() => setScannedRecipe(null)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 bg-white/50 rounded-full p-2">
                       <X className="w-6 h-6" />
                     </button>
-                    <span className="text-xs font-bold tracking-wider text-orange-600 uppercase mb-3 block">Aperçu de l'extraction IA</span>
+                    <span className="text-xs font-bold tracking-wider text-orange-600 uppercase mb-3 block">{t('scan.previewTitle')}</span>
                     <h2 className="text-3xl font-serif font-bold leading-tight text-slate-900">{scannedRecipe.title}</h2>
                     
                     {scannedRecipe.tags && scannedRecipe.tags.length > 0 && (
@@ -745,16 +745,16 @@ export default function App() {
                     )}
 
                     <div className="flex flex-wrap gap-6 mt-6 text-sm font-medium text-slate-700">
-                      <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-orange-500" /> Préparation: {scannedRecipe.prepTime || '?'}</span>
-                      <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-orange-500" /> Cuisson: {scannedRecipe.cookTime || '?'}</span>
-                      <span className="flex items-center gap-2"><ChefHat className="w-4 h-4 text-orange-500" /> Difficulté: {scannedRecipe.complexity || '?'}</span>
+                      <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-orange-500" /> {t('scan.prep')}: {scannedRecipe.prepTime || '?'}</span>
+                      <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-orange-500" /> {t('scan.cook')}: {scannedRecipe.cookTime || '?'}</span>
+                      <span className="flex items-center gap-2"><ChefHat className="w-4 h-4 text-orange-500" /> {t('scan.complexity')}: {scannedRecipe.complexity || '?'}</span>
                     </div>
                   </div>
                   
                   <div className="p-8 grid md:grid-cols-3 gap-8">
                     <div className="md:col-span-1">
                       <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-slate-800">
-                        <ShoppingCart className="w-5 h-5 text-slate-400" /> Ingrédients
+                        <ShoppingCart className="w-5 h-5 text-slate-400" /> {t('scan.ingredients')}
                       </h3>
                       <ul className="space-y-3">
                         {scannedRecipe.ingredients.map((ing, idx) => (
@@ -771,7 +771,7 @@ export default function App() {
 
                     <div className="md:col-span-2">
                       <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-slate-800">
-                        <ChefHat className="w-5 h-5 text-slate-400" /> Préparation
+                        <ChefHat className="w-5 h-5 text-slate-400" /> {t('scan.steps')}
                       </h3>
                       <ol className="space-y-4 text-slate-700">
                         {scannedRecipe.steps.map((step, idx) => (
@@ -789,7 +789,7 @@ export default function App() {
                       onClick={saveRecipe}
                       className="bg-slate-900 hover:bg-slate-800 transition-colors text-white px-8 py-3.5 rounded-xl font-medium flex items-center justify-center gap-2"
                     >
-                      <Check className="w-5 h-5" /> Ajouter à ma bibliothèque
+                      <Check className="w-5 h-5" /> {t('scan.save')}
                     </button>
                   </div>
                 </div>
@@ -802,29 +802,29 @@ export default function App() {
             <motion.div key="list" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-3xl mx-auto">
               <h2 className="text-2xl font-semibold mb-8 flex items-center gap-3 text-slate-800">
                 <ShoppingCart className="w-7 h-7 text-orange-600" />
-                Liste de courses
+                {t('shopping.title')}
               </h2>
 
               {selectedForMenu.size === 0 ? (
                 <div className="text-center py-20 px-4 bg-white rounded-3xl border border-slate-100">
-                  <p className="text-slate-500 mb-6 text-lg">Sélectionnez des recettes dans votre bibliothèque pour générer votre liste de courses.</p>
+                  <p className="text-slate-500 mb-6 text-lg">{t('shopping.empty')}</p>
                   <button 
                     onClick={() => setActiveTab('library')}
                     className="text-orange-600 font-medium hover:text-orange-700 flex items-center gap-2 mx-auto"
                   >
-                    <BookOpen className="w-5 h-5" /> Voir mes recettes
+                    <BookOpen className="w-5 h-5" /> {t('shopping.viewRecipes')}
                   </button>
                 </div>
               ) : (
                 <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 md:p-8">
                   <div className="mb-6 pb-6 border-b border-slate-100">
                     <div className="flex justify-between items-center mb-4">
-                      <p className="text-slate-600 font-medium">Basée sur <span className="text-orange-600 font-bold">{selectedForMenu.size}</span> recette(s) sélectionnée(s).</p>
+                      <p className="text-slate-600 font-medium">{t('shopping.basedOn')} <span className="text-orange-600 font-bold">{selectedForMenu.size}</span> {t('shopping.recipesSelected')}</p>
                       <button 
                         onClick={() => setSelectedForMenu(new Set())}
                         className="text-sm text-slate-500 hover:text-slate-800 flex items-center gap-1"
                       >
-                        Tout décocher
+                        {t('shopping.uncheckAll')}
                       </button>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -851,9 +851,9 @@ export default function App() {
                             <span className="mr-2">{getIngredientEmoji(ingredient)}</span>
                             {ingredient}
                           </p>
-                          {items.some(item => item.total > 0) && (
+                          {items.some(item => Number(item.total.toFixed(2)) > 0) && (
                             <div className="flex flex-wrap gap-1.5 mt-1.5">
-                              {items.filter(item => item.total > 0).map((item, i) => (
+                              {items.filter(item => Number(item.total.toFixed(2)) > 0).map((item, i) => (
                                 <div key={i} className="text-xs bg-white border border-orange-100 px-2 py-0.5 rounded-full text-slate-600 shadow-sm flex items-center gap-1.5">
                                   <span className="font-bold text-orange-800">{Number(item.total.toFixed(2))} {item.unit}</span>
                                 </div>
@@ -1040,7 +1040,7 @@ export default function App() {
                 
                 {isEditing && editForm ? (
                   <div className="mb-8">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Tags (séparés par des virgules)</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">{t('scan.tags') || 'Tags'} ({t('scan.separated') || 'séparés par des virgules'})</label>
                     <input 
                       type="text" 
                       value={(editForm.tags || []).join(', ')}
@@ -1066,22 +1066,22 @@ export default function App() {
                     <>
                       <div className="flex items-center gap-2">
                         <Clock className="w-5 h-5 text-orange-500" />
-                        <input type="text" value={editForm.prepTime || ''} onChange={e => setEditForm({...editForm, prepTime: e.target.value})} placeholder="Préparation" className="bg-white/50 border border-orange-200 rounded-lg px-2 py-1 w-24 focus:outline-none" />
+                        <input type="text" value={editForm.prepTime || ''} onChange={e => setEditForm({...editForm, prepTime: e.target.value})} placeholder={t('scan.prep')} className="bg-white/50 border border-orange-200 rounded-lg px-2 py-1 w-24 focus:outline-none" />
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="w-5 h-5 text-orange-500" />
-                        <input type="text" value={editForm.cookTime || ''} onChange={e => setEditForm({...editForm, cookTime: e.target.value})} placeholder="Cuisson" className="bg-white/50 border border-orange-200 rounded-lg px-2 py-1 w-24 focus:outline-none" />
+                        <input type="text" value={editForm.cookTime || ''} onChange={e => setEditForm({...editForm, cookTime: e.target.value})} placeholder={t('scan.cook')} className="bg-white/50 border border-orange-200 rounded-lg px-2 py-1 w-24 focus:outline-none" />
                       </div>
                       <div className="flex items-center gap-2">
                         <ChefHat className="w-5 h-5 text-orange-500" />
-                        <input type="text" value={editForm.complexity || ''} onChange={e => setEditForm({...editForm, complexity: e.target.value})} placeholder="Difficulté" className="bg-white/50 border border-orange-200 rounded-lg px-2 py-1 w-24 focus:outline-none" />
+                        <input type="text" value={editForm.complexity || ''} onChange={e => setEditForm({...editForm, complexity: e.target.value})} placeholder={t('scan.complexity')} className="bg-white/50 border border-orange-200 rounded-lg px-2 py-1 w-24 focus:outline-none" />
                       </div>
                     </>
                   ) : (
                     <>
-                      <span className="flex items-center gap-2"><Clock className="w-5 h-5 text-orange-500" /> Préparation: {viewingRecipe.prepTime || '-'}</span>
-                      <span className="flex items-center gap-2"><Clock className="w-5 h-5 text-orange-500" /> Cuisson: {viewingRecipe.cookTime || '-'}</span>
-                      <span className="flex items-center gap-2"><ChefHat className="w-5 h-5 text-orange-500" /> Difficulté: {viewingRecipe.complexity || '-'}</span>
+                      <span className="flex items-center gap-2"><Clock className="w-5 h-5 text-orange-500" /> {t('scan.prep')}: {viewingRecipe.prepTime || '-'}</span>
+                      <span className="flex items-center gap-2"><Clock className="w-5 h-5 text-orange-500" /> {t('scan.cook')}: {viewingRecipe.cookTime || '-'}</span>
+                      <span className="flex items-center gap-2"><ChefHat className="w-5 h-5 text-orange-500" /> {t('scan.complexity')}: {viewingRecipe.complexity || '-'}</span>
                     </>
                   )}
                 </div>
@@ -1090,7 +1090,7 @@ export default function App() {
               <div className={`p-8 md:p-12 ${isEditing ? 'flex flex-col gap-12' : 'grid md:grid-cols-5 gap-12'}`}>
                 <div className={isEditing ? '' : 'md:col-span-2'}>
                   <h3 className="font-serif font-bold text-2xl mb-8 flex items-center gap-3 text-slate-800 border-b border-orange-100 pb-4 italic">
-                    <ShoppingCart className="w-6 h-6 text-orange-400" /> Ingrédients
+                    <ShoppingCart className="w-6 h-6 text-orange-400" /> {t('scan.ingredients')}
                   </h3>
                   <ul className="space-y-5">
                     {isEditing && editForm ? (
@@ -1122,7 +1122,7 @@ export default function App() {
                         ))}
                         <button onClick={() => {
                           setEditForm({...editForm, ingredients: [...editForm.ingredients, {name: '', amount: '', unit: ''}]});
-                        }} className="h-full min-h-[48px] border-2 border-dashed border-orange-200 rounded-xl text-sm text-orange-600 font-bold flex items-center justify-center gap-2 hover:bg-orange-50 hover:border-orange-300 transition-colors"><Plus className="w-4 h-4" /> Ajouter un ingrédient</button>
+                        }} className="h-full min-h-[48px] border-2 border-dashed border-orange-200 rounded-xl text-sm text-orange-600 font-bold flex items-center justify-center gap-2 hover:bg-orange-50 hover:border-orange-300 transition-colors"><Plus className="w-4 h-4" /> {t('scan.addIngredient') || 'Ajouter un ingrédient'}</button>
                       </div>
                     ) : (
                       viewingRecipe.ingredients.map((ing, idx) => (
@@ -1131,10 +1131,12 @@ export default function App() {
                             <span>{getIngredientEmoji(ing.name)}</span>
                             {ing.name}
                           </span>
-                          {((ing.amount && ing.amount !== '0') || ing.unit) && (
+                          {((ing.amount && parseFloat(String(ing.amount).replace(',', '.')) > 0) || ing.unit) && (
                             <div className="flex items-center gap-3">
                               <span className="h-px w-6 bg-orange-100 group-hover:w-10 transition-all"></span>
-                              <span className="font-bold text-orange-900 bg-orange-100/30 px-3 py-1 rounded-xl text-sm">{ing.amount} {ing.unit}</span>
+                              <span className="font-bold text-orange-900 bg-orange-100/30 px-3 py-1 rounded-xl text-sm">
+                                {ing.amount && parseFloat(String(ing.amount).replace(',', '.')) > 0 ? ing.amount : ''} {ing.unit}
+                              </span>
                             </div>
                           )}
                         </li>
@@ -1145,7 +1147,7 @@ export default function App() {
 
                 <div className={isEditing ? '' : 'md:col-span-3'}>
                   <h3 className="font-serif font-bold text-2xl mb-8 flex items-center gap-3 text-slate-800 border-b border-orange-100 pb-4 italic">
-                    <ChefHat className="w-6 h-6 text-orange-400" /> Préparation
+                    <ChefHat className="w-6 h-6 text-orange-400" /> {t('scan.steps')}
                   </h3>
                   <ol className="space-y-8 text-slate-700">
                     {isEditing && editForm ? (
@@ -1218,7 +1220,7 @@ export default function App() {
               <div className="p-8">
                 <div className="flex justify-between items-center mb-8">
                   <h2 className="text-2xl font-serif font-bold text-slate-900">
-                    {authMode === 'login' ? 'Connexion' : 'Inscription'}
+                    {authMode === 'login' ? t('auth.login') : t('auth.signup')}
                   </h2>
                   <button onClick={() => setShowAuthModal(false)} className="text-slate-400 hover:text-slate-600">
                     <X className="w-6 h-6" />
@@ -1229,18 +1231,18 @@ export default function App() {
                   onClick={handleGoogleLogin}
                   className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl border-2 border-slate-100 font-bold text-slate-700 hover:bg-slate-50 transition-all mb-6"
                 >
-                  <div className="w-5 h-5 bg-slate-100 rounded-full flex items-center justify-center text-[10px] font-black">G</div> Continuer avec Google
+                  <div className="w-5 h-5 bg-slate-100 rounded-full flex items-center justify-center text-[10px] font-black">G</div> {t('auth.google')}
                 </button>
 
                 <div className="relative flex items-center gap-4 mb-6">
                   <div className="flex-1 h-px bg-slate-100"></div>
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">ou</span>
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('auth.or')}</span>
                   <div className="flex-1 h-px bg-slate-100"></div>
                 </div>
 
                 <form onSubmit={handleEmailAuth} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-1">Email</label>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-1">{t('auth.email')}</label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                       <input 
@@ -1254,7 +1256,7 @@ export default function App() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-1">Mot de passe</label>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-1">{t('auth.password')}</label>
                     <div className="relative">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                       <input 
@@ -1276,17 +1278,17 @@ export default function App() {
                     type="submit"
                     className="w-full py-4 rounded-2xl bg-orange-700 text-white font-bold shadow-lg shadow-orange-700/20 hover:bg-orange-800 transition-all"
                   >
-                    {authMode === 'login' ? 'Se connecter' : "S'inscrire"}
+                    {authMode === 'login' ? t('auth.signIn') : t('auth.signUp')}
                   </button>
                 </form>
 
                 <p className="text-center mt-8 text-sm text-slate-500">
-                  {authMode === 'login' ? "Pas encore de compte ?" : "Déjà un compte ?"}
+                  {authMode === 'login' ? t('auth.noAccount') : t('auth.hasAccount')}
                   <button 
                     onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
                     className="ml-2 text-orange-700 font-bold hover:underline"
                   >
-                    {authMode === 'login' ? "S'inscrire" : "Se connecter"}
+                    {authMode === 'login' ? t('auth.signUp') : t('auth.signIn')}
                   </button>
                 </p>
               </div>
@@ -1409,8 +1411,8 @@ export default function App() {
                       <Check className="w-3.5 h-3.5 text-orange-600" />
                     </div>
                     <div>
-                      <p className="font-bold text-slate-800">Recettes illimitées</p>
-                      <p className="text-sm text-slate-500">Sauvegardez autant de recettes que vous le souhaitez (limité à 10 en gratuit).</p>
+                      <p className="font-bold text-slate-800">{t('premium.unlimited')}</p>
+                      <p className="text-sm text-slate-500">{t('premium.unlimitedDesc')}</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
@@ -1418,8 +1420,8 @@ export default function App() {
                       <Check className="w-3.5 h-3.5 text-orange-600" />
                     </div>
                     <div>
-                      <p className="font-bold text-slate-800">Modification avancée</p>
-                      <p className="text-sm text-slate-500">Modifiez les ingrédients, les étapes et les tags de vos recettes scannées.</p>
+                      <p className="font-bold text-slate-800">{t('premium.advanced')}</p>
+                      <p className="text-sm text-slate-500">{t('premium.advancedDesc')}</p>
                     </div>
                   </li>
                 </ul>
@@ -1434,9 +1436,9 @@ export default function App() {
                   ) : (
                     <Sparkles className="w-5 h-5" />
                   )}
-                  {loading ? 'Redirection...' : "S'abonner pour 4.99€/mois"}
+                  {loading ? t('premium.redirecting') : t('premium.subscribe')}
                 </button>
-                <p className="text-center text-xs text-slate-400 mt-4">Sans engagement, annulez à tout moment.</p>
+                <p className="text-center text-xs text-slate-400 mt-4">{t('premium.noCommitment')}</p>
               </div>
             </motion.div>
           </motion.div>
@@ -1463,21 +1465,21 @@ export default function App() {
               <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Trash2 className="w-8 h-8" />
               </div>
-              <h3 className="text-2xl font-serif font-bold text-slate-800 mb-2">Supprimer la recette ?</h3>
-              <p className="text-slate-500 mb-8">Cette action est définitive et ne peut pas être annulée.</p>
+              <h3 className="text-2xl font-serif font-bold text-slate-800 mb-2">{t('settings.deleteTitle')}</h3>
+              <p className="text-slate-500 mb-8">{t('settings.deleteDesc')}</p>
               
               <div className="flex gap-4">
                 <button 
                   onClick={() => setRecipeToDelete(null)}
                   className="flex-1 py-3.5 rounded-2xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-all"
                 >
-                  Annuler
+                  {t('settings.cancel')}
                 </button>
                 <button 
                   onClick={() => deleteRecipe(recipeToDelete)}
                   className="flex-1 py-3.5 rounded-2xl font-bold text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-600/20 transition-all"
                 >
-                  Supprimer
+                  {t('settings.delete')}
                 </button>
               </div>
             </motion.div>
