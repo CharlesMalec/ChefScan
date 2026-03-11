@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, Link as LinkIcon, BookOpen, ShoppingCart, Plus, Loader2, Check, ChevronRight, Clock, ChefHat, X, Image as ImageIcon, LogOut, Mail, Lock, User, Tag, Trash2, Crown, Pencil, Save, Star, Sparkles, Search, Filter, ChevronDown } from 'lucide-react';
+import { Camera, Link as LinkIcon, BookOpen, ShoppingCart, Plus, Loader2, Check, ChevronRight, Clock, ChefHat, X, Image as ImageIcon, LogOut, Mail, Lock, User, Tag, Trash2, Crown, Pencil, Save, Star, Sparkles, Search, Filter, ChevronDown, Heart, Settings } from 'lucide-react';
 import { analyzeRecipeImage, analyzeRecipeUrl } from './services/gemini';
 import { getIngredientEmoji } from './utils';
 import { Recipe } from './types';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from './contexts/AuthContext';
+import { useLanguage } from './contexts/LanguageContext';
 import { auth, db, googleProvider, app } from './services/firebase';
 import { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, updateDoc, increment, orderBy, serverTimestamp } from 'firebase/firestore';
@@ -12,7 +13,8 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 
 export default function App() {
   const { user, profile, isPremium } = useAuth();
-  const [activeTab, setActiveTab] = useState<'library' | 'scan' | 'list'>('library');
+  const { t, language, setLanguage } = useLanguage();
+  const [activeTab, setActiveTab] = useState<'library' | 'scan' | 'list' | 'about'>('library');
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [selectedForMenu, setSelectedForMenu] = useState<Set<string>>(new Set());
   const [viewingRecipe, setViewingRecipe] = useState<Recipe | null>(null);
@@ -33,6 +35,7 @@ export default function App() {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Recipe | null>(null);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [recipeToDelete, setRecipeToDelete] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingSaveRef = useRef(false);
@@ -392,21 +395,34 @@ export default function App() {
             <div className="flex items-center gap-2">
               {!isPremium ? (
                 <button onClick={() => setShowPremiumModal(true)} className="px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-600 text-white text-xs font-bold rounded-full shadow-md flex items-center gap-1">
-                  <Crown className="w-3 h-3" /> Premium
+                  <Crown className="w-3 h-3" /> {t('nav.premium')}
                 </button>
               ) : (
                 <button onClick={handleManageSubscription} disabled={loading} className="px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-full shadow-md flex items-center gap-1 disabled:opacity-70">
-                  {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Crown className="w-3 h-3" />} Gérer
+                  {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Crown className="w-3 h-3" />} {t('nav.manage')}
                 </button>
               )}
-              <button onClick={handleLogout} className="p-2 text-orange-900">
-                <LogOut className="w-6 h-6" />
+              <button 
+                onClick={() => setShowSettingsModal(true)} 
+                className="p-2 text-orange-900 hover:bg-orange-50 rounded-full transition-colors"
+                title={t('settings.title')}
+              >
+                <Settings className="w-6 h-6" />
               </button>
             </div>
           ) : (
-            <button onClick={() => setShowAuthModal(true)} className="p-2 text-orange-900">
-              <User className="w-6 h-6" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setShowSettingsModal(true)} 
+                className="p-2 text-orange-900 hover:bg-orange-50 rounded-full transition-colors"
+                title={t('settings.title')}
+              >
+                <Settings className="w-6 h-6" />
+              </button>
+              <button onClick={() => setShowAuthModal(true)} className="p-2 text-orange-900">
+                <User className="w-6 h-6" />
+              </button>
+            </div>
           )}
         </div>
       </header>
@@ -422,26 +438,32 @@ export default function App() {
             onClick={() => setActiveTab('library')}
             className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all font-medium ${activeTab === 'library' ? 'bg-orange-100 text-orange-900 shadow-sm' : 'text-slate-600 hover:bg-orange-50/50'}`}
           >
-            <BookOpen className="w-5 h-5" /> Mes Recettes
+            <BookOpen className="w-5 h-5" /> {t('nav.recipes')}
           </button>
           <button 
             onClick={() => setActiveTab('scan')}
             className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all font-medium ${activeTab === 'scan' ? 'bg-orange-100 text-orange-900 shadow-sm' : 'text-slate-600 hover:bg-orange-50/50'}`}
           >
-            <Plus className="w-5 h-5" /> Ajouter
+            <Plus className="w-5 h-5" /> {t('nav.add')}
           </button>
           <button 
             onClick={() => setActiveTab('list')}
             className={`flex items-center justify-between px-5 py-3.5 rounded-2xl transition-all font-medium ${activeTab === 'list' ? 'bg-orange-100 text-orange-900 shadow-sm' : 'text-slate-600 hover:bg-orange-50/50'}`}
           >
             <div className="flex items-center gap-3">
-              <ShoppingCart className="w-5 h-5" /> Courses
+              <ShoppingCart className="w-5 h-5" /> {t('nav.shopping')}
             </div>
             {selectedForMenu.size > 0 && (
               <span className="bg-orange-700 text-white text-xs font-bold px-2 py-0.5 rounded-full">
                 {selectedForMenu.size}
               </span>
             )}
+          </button>
+          <button 
+            onClick={() => setActiveTab('about')}
+            className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all font-medium ${activeTab === 'about' ? 'bg-orange-100 text-orange-900 shadow-sm' : 'text-slate-600 hover:bg-orange-50/50'}`}
+          >
+            <Heart className="w-5 h-5" /> {t('nav.about')}
           </button>
         </nav>
 
@@ -453,7 +475,7 @@ export default function App() {
                   onClick={() => setShowPremiumModal(true)}
                   className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-400 to-orange-600 text-white px-4 py-3 rounded-2xl font-bold shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 transition-all hover:-translate-y-0.5"
                 >
-                  <Star className="w-4 h-4 fill-current" /> Passer Premium
+                  <Star className="w-4 h-4 fill-current" /> {t('nav.premium')}
                 </button>
               ) : (
                 <button 
@@ -461,7 +483,7 @@ export default function App() {
                   disabled={loading}
                   className="w-full flex items-center justify-center gap-2 bg-slate-900 text-white px-4 py-3 rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition-all hover:-translate-y-0.5 disabled:opacity-70"
                 >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" />} Gérer l'abonnement
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" />} {t('nav.manage')}
                 </button>
               )}
               <div className="flex items-center gap-3 px-2">
@@ -488,19 +510,27 @@ export default function App() {
                 </div>
               </div>
               <button 
-                onClick={handleLogout}
-                className="flex items-center gap-3 px-5 py-3 rounded-xl text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all text-sm font-medium"
+                onClick={() => setShowSettingsModal(true)} 
+                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-slate-500 hover:bg-orange-50 hover:text-orange-600 transition-all text-sm font-medium"
               >
-                <LogOut className="w-4 h-4" /> Déconnexion
+                <Settings className="w-4 h-4" /> {t('settings.title')}
               </button>
             </div>
           ) : (
-            <button 
-              onClick={() => setShowAuthModal(true)}
-              className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-orange-700 text-white font-bold shadow-lg shadow-orange-700/20 hover:bg-orange-800 transition-all"
-            >
-              <User className="w-5 h-5" /> Se connecter
-            </button>
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={() => setShowSettingsModal(true)} 
+                className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-orange-100 text-orange-900 font-bold hover:bg-orange-200 transition-all"
+              >
+                <Settings className="w-5 h-5" /> {t('settings.title')}
+              </button>
+              <button 
+                onClick={() => setShowAuthModal(true)}
+                className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-orange-700 text-white font-bold shadow-lg shadow-orange-700/20 hover:bg-orange-800 transition-all"
+              >
+                <User className="w-5 h-5" /> {t('settings.login')}
+              </button>
+            </div>
           )}
         </div>
       </aside>
@@ -512,13 +542,13 @@ export default function App() {
           {activeTab === 'library' && (
             <motion.div key="library" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
               <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-8">
-                <h2 className="text-2xl font-semibold text-slate-800 shrink-0">Mes Recettes ({filteredRecipes.length})</h2>
+                <h2 className="text-2xl font-semibold text-slate-800 shrink-0">{t('library.title')} ({filteredRecipes.length})</h2>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:w-auto">
                   <div className="relative flex-1 sm:w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input 
                       type="text" 
-                      placeholder="Rechercher (titre, ingrédient, tag)..." 
+                      placeholder={t('library.search')} 
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
@@ -836,6 +866,58 @@ export default function App() {
               )}
             </motion.div>
           )}
+
+          {/* ABOUT TAB */}
+          {activeTab === 'about' && (
+            <motion.div key="about" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-3xl mx-auto">
+              <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-orange-50">
+                <div className="h-64 sm:h-80 relative">
+                  <img 
+                    src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?q=80&w=2000&auto=format&fit=crop" 
+                    alt="Plat traditionnel, pot-au-feu" 
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex items-end p-8">
+                    <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white">{t('about.title')}</h2>
+                  </div>
+                </div>
+                
+                <div className="p-8 sm:p-12 space-y-6 text-lg text-slate-700 leading-relaxed font-serif">
+                  <p>
+                    <span className="text-4xl font-bold text-orange-800 float-left mr-2 mt-1 leading-none">{t('about.letter')}</span>
+                    {t('about.p1')}
+                  </p>
+                  
+                  <p>
+                    {t('about.p2')}
+                  </p>
+
+                  <p>
+                    {t('about.p3')}
+                  </p>
+
+                  <div className="my-10 border-l-4 border-orange-300 pl-6 italic text-xl text-slate-600">
+                    {t('about.quote')}
+                  </div>
+
+                  <p>
+                    {t('about.p4')}
+                  </p>
+
+                  <div className="pt-8 mt-8 border-t border-orange-100 flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-800 font-bold text-2xl font-sans">
+                      C
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-900 font-sans">Charles</p>
+                      <p className="text-sm text-slate-500 font-sans">{t('about.role')}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
 
@@ -847,7 +929,7 @@ export default function App() {
             className={`flex flex-col items-center p-2 w-20 transition-all ${activeTab === 'library' ? 'text-orange-900 scale-110' : 'text-slate-400 hover:text-slate-600'}`}
           >
             <BookOpen className="w-6 h-6 mb-1" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Recettes</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest">{t('nav.recipes')}</span>
           </button>
           
           <div className="relative -top-6">
@@ -864,12 +946,20 @@ export default function App() {
             className={`flex flex-col items-center p-2 w-20 transition-all relative ${activeTab === 'list' ? 'text-orange-900 scale-110' : 'text-slate-400 hover:text-slate-600'}`}
           >
             <ShoppingCart className="w-6 h-6 mb-1" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Courses</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest">{t('nav.shopping')}</span>
             {selectedForMenu.size > 0 && (
               <span className="absolute top-1 right-4 w-5 h-5 bg-orange-800 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-md">
                 {selectedForMenu.size}
               </span>
             )}
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('about')}
+            className={`flex flex-col items-center p-2 w-20 transition-all ${activeTab === 'about' ? 'text-orange-900 scale-110' : 'text-slate-400 hover:text-slate-600'}`}
+          >
+            <Heart className="w-6 h-6 mb-1" />
+            <span className="text-[10px] font-bold uppercase tracking-widest">{t('nav.about')}</span>
           </button>
         </div>
       </nav>
@@ -1200,6 +1290,81 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* SETTINGS MODAL */}
+      <AnimatePresence>
+        {showSettingsModal && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden relative"
+            >
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-orange-600" />
+                  {t('settings.title')}
+                </h2>
+                <button onClick={() => setShowSettingsModal(false)} className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-full transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="p-6 space-y-8">
+                {/* Language Section */}
+                <div>
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <span className="w-4 h-px bg-slate-200"></span>
+                    {t('settings.language')}
+                    <span className="flex-1 h-px bg-slate-200"></span>
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button 
+                      onClick={() => setLanguage('fr')}
+                      className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all ${language === 'fr' ? 'border-orange-500 bg-orange-50 text-orange-900 font-bold shadow-sm' : 'border-slate-100 text-slate-600 hover:border-slate-200 hover:bg-slate-50'}`}
+                    >
+                      <span className="text-xl">🇫🇷</span> Français
+                    </button>
+                    <button 
+                      onClick={() => setLanguage('en')}
+                      className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all ${language === 'en' ? 'border-orange-500 bg-orange-50 text-orange-900 font-bold shadow-sm' : 'border-slate-100 text-slate-600 hover:border-slate-200 hover:bg-slate-50'}`}
+                    >
+                      <span className="text-xl">🇬🇧</span> English
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Account Section */}
+                {user && (
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                      <span className="w-4 h-px bg-slate-200"></span>
+                      {t('settings.account')}
+                      <span className="flex-1 h-px bg-slate-200"></span>
+                    </h3>
+                    <button 
+                      onClick={() => {
+                        handleLogout();
+                        setShowSettingsModal(false);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-red-50 text-red-600 font-bold hover:bg-red-100 transition-all border border-red-100"
+                    >
+                      <LogOut className="w-5 h-5" /> {t('settings.logout')}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* PREMIUM MODAL */}
       <AnimatePresence>
         {showPremiumModal && (
