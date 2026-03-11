@@ -1,15 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, Link as LinkIcon, BookOpen, ShoppingCart, Plus, Loader2, Check, ChevronRight, Clock, ChefHat, X, Image as ImageIcon, LogOut, Mail, Lock, User, Tag, Trash2, Crown, Pencil, Save, Star, Sparkles, Search, Filter, ChevronDown, Heart, Settings } from 'lucide-react';
+import { BookOpen, ShoppingCart, Plus, Loader2, User, Search, Filter, Heart, Settings, Crown, Star, ChefHat, X } from 'lucide-react';
 import { analyzeRecipeImage, analyzeRecipeUrl } from './services/gemini';
-import { getIngredientEmoji } from './utils';
 import { Recipe } from './types';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from './contexts/AuthContext';
 import { useLanguage } from './contexts/LanguageContext';
 import { auth, db, googleProvider, app } from './services/firebase';
 import { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, updateDoc, increment, orderBy, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, updateDoc, orderBy, increment } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+
+// Components
+import AuthModal from './components/modals/AuthModal';
+import SettingsModal from './components/modals/SettingsModal';
+import PremiumModal from './components/modals/PremiumModal';
+import DeleteConfirmModal from './components/modals/DeleteConfirmModal';
+import RecipeDetailModal from './components/modals/RecipeDetailModal';
+import RecipeCard from './components/RecipeCard';
+import ScanOptions from './components/scan/ScanOptions';
+import ScanResultPreview from './components/scan/ScanResultPreview';
+import ShoppingList from './components/ShoppingList';
 
 export default function App() {
   const { user, profile, isPremium } = useAuth();
@@ -126,9 +136,8 @@ export default function App() {
       const checkoutSessionRef = await addDoc(
         collection(db, 'customers', user.uid, 'checkout_sessions'),
         {
-          // We need the Price ID from the Stripe Dashboard
-          // The user will need to replace this with their actual Price ID
-          price: 'price_1T9RstBCaCCfPENPfnrGiyDa', // TODO: Remplacer par le vrai Price ID de Stripe
+          // We use the Price ID from environment variables for production
+          price: import.meta.env.VITE_STRIPE_PRICE_ID || 'price_1T9qdtBexB8ULnAkJbhKKYoB', 
           success_url: window.location.origin + '?success=true',
           cancel_url: window.location.origin + '?canceled=true',
         }
@@ -161,38 +170,47 @@ export default function App() {
     if (!user) return;
     try {
       setLoading(true);
-      // Par défaut, Firebase déploie les extensions sur us-central1. 
-      // Si votre extension est sur une autre région (ex: europe-west1), modifiez la ligne ci-dessous :
-      const functions = getFunctions(app, 'europe-west1'); // ou 'us-central1'
+      
+      // NOTE: La région doit correspondre à celle choisie lors de l'installation de l'extension.
+      // Par défaut c'est 'us-central1'. Si vous avez choisi la Belgique, c'est 'europe-west1'.
+      const REGION = 'europe-west1'; 
+      
+      const functions = getFunctions(app, REGION);
       const functionRef = httpsCallable(functions, 'ext-firestore-stripe-payments-createPortalLink');
       const { data } = await functionRef({ returnUrl: window.location.origin });
       
       if ((data as any)?.url) {
         window.location.assign((data as any).url);
       } else {
-        throw new Error("Aucune URL retournée par Stripe");
+        throw new Error("Aucune URL retournée par Stripe. Vérifiez que le portail client est activé dans le dashboard Stripe.");
       }
     } catch (err: any) {
       console.error('Erreur Portail:', err);
-      alert("Erreur lors de la redirection vers le portail : " + err.message + "\nAssurez-vous que l'extension Stripe est bien configurée.");
+      
+      let errorMessage = err.message;
+      if (err.message === 'internal') {
+        errorMessage = "Erreur interne (Stripe). Vérifiez que :\n1. Le 'Customer Portal' est activé dans votre Dashboard Stripe.\n2. Votre clé API Stripe dans la config de l'extension est correcte.\n3. La région '" + 'europe-west1' + "' est la bonne.";
+      }
+      
+      alert("Erreur Portail : " + errorMessage);
       setLoading(false);
     }
   };
 
-  const handleUpdateRecipe = async () => {
-    if (!editForm || !user) return;
+  const handleUpdateRecipe = async (updatedRecipe: Recipe) => {
+    if (!user) return;
     try {
-      const recipeRef = doc(db, 'recipes', editForm.id);
+      const recipeRef = doc(db, 'recipes', updatedRecipe.id);
       await updateDoc(recipeRef, {
-        title: editForm.title,
-        tags: editForm.tags,
-        prepTime: editForm.prepTime,
-        cookTime: editForm.cookTime,
-        complexity: editForm.complexity,
-        ingredients: editForm.ingredients,
-        steps: editForm.steps
+        title: updatedRecipe.title,
+        tags: updatedRecipe.tags,
+        prepTime: updatedRecipe.prepTime,
+        cookTime: updatedRecipe.cookTime,
+        complexity: updatedRecipe.complexity,
+        ingredients: updatedRecipe.ingredients,
+        steps: updatedRecipe.steps
       });
-      setViewingRecipe(editForm);
+      setViewingRecipe(updatedRecipe);
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating recipe:", error);
@@ -326,6 +344,12 @@ export default function App() {
       setRecipeToDelete(null);
     } catch (e) {
       console.error("Failed to delete recipe", e);
+    }
+  };
+
+  const handleDeleteRecipe = () => {
+    if (recipeToDelete) {
+      deleteRecipe(recipeToDelete);
     }
   };
 
@@ -615,47 +639,14 @@ export default function App() {
               ) : (
                 <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 max-w-lg mx-auto lg:max-w-none">
                   {filteredRecipes.map(recipe => (
-                    <div 
-                      key={recipe.id} 
-                      onClick={() => setViewingRecipe(recipe)}
-                      className="bg-white p-5 rounded-3xl shadow-sm border border-orange-50 flex flex-col gap-4 hover:shadow-xl hover:shadow-orange-900/5 transition-all group relative cursor-pointer active:scale-[0.98]"
-                    >
-                      <div className="flex justify-between items-start gap-3">
-                        <div className="flex-1">
-                          <h3 className="font-serif font-bold text-xl leading-tight text-slate-900 group-hover:text-orange-900 transition-colors mb-2">{recipe.title}</h3>
-                          {recipe.tags && recipe.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5">
-                              {recipe.tags.slice(0, 2).map(tag => (
-                                <span key={tag} className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
-                                  <Tag className="w-2.5 h-2.5" /> {tag}
-                                </span>
-                              ))}
-                              {recipe.tags.length > 2 && <span className="text-[10px] font-bold text-slate-300">+{recipe.tags.length - 2}</span>}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); setRecipeToDelete(recipe.id); }}
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all md:opacity-0 md:group-hover:opacity-100"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); toggleMenuSelection(recipe.id); }}
-                            className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${selectedForMenu.has(recipe.id) ? 'bg-orange-800 border-orange-800 text-white scale-110 shadow-lg shadow-orange-800/20' : 'border-orange-100 text-transparent hover:border-orange-300'}`}
-                          >
-                            <Check className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600 font-medium mt-auto pt-4 border-t border-orange-50">
-                        <span className="flex items-center gap-1.5 bg-orange-50/50 px-2 py-1 rounded-xl"><Clock className="w-3.5 h-3.5 text-orange-400" /> {recipe.prepTime || '-'}</span>
-                        <span className="flex items-center gap-1.5 bg-orange-50/50 px-2 py-1 rounded-xl"><ChefHat className="w-3.5 h-3.5 text-orange-400" /> {recipe.complexity || '-'}</span>
-                        <span className="bg-orange-100 text-orange-900 px-2 py-1 rounded-xl ml-auto text-[10px] uppercase font-bold tracking-wider">{recipe.source}</span>
-                      </div>
-                    </div>
+                    <RecipeCard 
+                      key={recipe.id}
+                      recipe={recipe}
+                      onView={setViewingRecipe}
+                      onDelete={setRecipeToDelete}
+                      onToggleMenu={toggleMenuSelection}
+                      isSelected={selectedForMenu.has(recipe.id)}
+                    />
                   ))}
                 </div>
               )}
@@ -666,138 +657,19 @@ export default function App() {
           {activeTab === 'scan' && (
             <motion.div key="scan" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-4xl mx-auto">
               {!scannedRecipe ? (
-                <div className="space-y-12">
-                  <div className="text-center max-w-xl mx-auto mb-12">
-                    <h2 className="text-4xl font-serif font-bold text-slate-900 mb-4">{t('scan.title')}</h2>
-                    <p className="text-slate-500 text-lg">{t('scan.subtitle')}</p>
-                  </div>
-                  
-                  <div className="grid md:grid-cols-2 gap-8">
-                    {/* Camera / Photo Upload */}
-                    <div className="bg-white p-10 rounded-[32px] shadow-sm border border-slate-100 text-center flex flex-col items-center justify-center hover:border-orange-200 transition-all hover:shadow-xl hover:shadow-orange-500/5 group">
-                      <div className="w-24 h-24 bg-orange-50 text-orange-600 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
-                        <Camera className="w-12 h-12" />
-                      </div>
-                      <h3 className="font-serif font-bold text-2xl mb-3 text-slate-900">{t('scan.bookTitle')}</h3>
-                      <p className="text-slate-500 mb-10 leading-relaxed">{t('scan.bookDesc')}</p>
-                      
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        capture="environment" 
-                        className="hidden" 
-                        ref={fileInputRef}
-                        onChange={handleImageUpload}
-                      />
-                      <button 
-                        type="button"
-                        disabled={loading}
-                        onClick={() => fileInputRef.current?.click()}
-                        className="w-full bg-orange-600 hover:bg-orange-700 transition-all text-white py-4 rounded-2xl font-bold shadow-lg shadow-orange-600/20 flex items-center justify-center gap-3 disabled:opacity-70 active:scale-[0.98]"
-                      >
-                        {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> {t('scan.analyzing')}</> : <><ImageIcon className="w-5 h-5" /> {t('scan.takePhoto')}</>}
-                      </button>
-                    </div>
-
-                    {/* URL Import */}
-                    <div className="bg-white p-10 rounded-[32px] shadow-sm border border-slate-100 flex flex-col items-center justify-center hover:border-blue-200 transition-all hover:shadow-xl hover:shadow-blue-500/5 group">
-                      <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
-                        <LinkIcon className="w-12 h-12" />
-                      </div>
-                      <h3 className="font-serif font-bold text-2xl mb-3 text-slate-900">{t('scan.webTitle')}</h3>
-                      <p className="text-slate-500 mb-10 leading-relaxed">{t('scan.webDesc')}</p>
-
-                      <form 
-                        onSubmit={(e) => { e.preventDefault(); handleUrlSubmit(); }}
-                        className="flex flex-col gap-4 w-full"
-                      >
-                        <input 
-                          type="url" 
-                          placeholder="https://recette-delicieuse.com/..." 
-                          value={urlInput}
-                          onChange={(e) => setUrlInput(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all"
-                        />
-                        <button 
-                          type="submit"
-                          disabled={loading || !urlInput}
-                          className="w-full bg-slate-900 hover:bg-slate-800 transition-all text-white py-4 rounded-2xl font-bold shadow-lg shadow-slate-900/20 disabled:opacity-50 flex items-center justify-center gap-3 active:scale-[0.98]"
-                        >
-                          {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><ChevronRight className="w-5 h-5" /> {t('scan.importLink')}</>}
-                        </button>
-                      </form>
-                    </div>
-                  </div>
-                </div>
+                <ScanOptions 
+                  loading={loading}
+                  onImageClick={() => fileInputRef.current?.click()}
+                  urlInput={urlInput}
+                  setUrlInput={setUrlInput}
+                  onUrlSubmit={(e) => { e.preventDefault(); handleUrlSubmit(); }}
+                />
               ) : (
-                /* Scanned Recipe Preview */
-                <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                  <div className="bg-orange-50 p-8 relative">
-                    <button onClick={() => setScannedRecipe(null)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 bg-white/50 rounded-full p-2">
-                      <X className="w-6 h-6" />
-                    </button>
-                    <span className="text-xs font-bold tracking-wider text-orange-600 uppercase mb-3 block">{t('scan.previewTitle')}</span>
-                    <h2 className="text-3xl font-serif font-bold leading-tight text-slate-900">{scannedRecipe.title}</h2>
-                    
-                    {scannedRecipe.tags && scannedRecipe.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-4">
-                        {scannedRecipe.tags.map(tag => (
-                          <span key={tag} className="bg-white/50 text-orange-800 px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1">
-                            <Tag className="w-2.5 h-2.5" /> {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="flex flex-wrap gap-6 mt-6 text-sm font-medium text-slate-700">
-                      <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-orange-500" /> {t('scan.prep')}: {scannedRecipe.prepTime || '?'}</span>
-                      <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-orange-500" /> {t('scan.cook')}: {scannedRecipe.cookTime || '?'}</span>
-                      <span className="flex items-center gap-2"><ChefHat className="w-4 h-4 text-orange-500" /> {t('scan.complexity')}: {scannedRecipe.complexity || '?'}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="p-8 grid md:grid-cols-3 gap-8">
-                    <div className="md:col-span-1">
-                      <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-slate-800">
-                        <ShoppingCart className="w-5 h-5 text-slate-400" /> {t('scan.ingredients')}
-                      </h3>
-                      <ul className="space-y-3">
-                        {scannedRecipe.ingredients.map((ing, idx) => (
-                          <li key={idx} className="text-sm flex justify-between border-b border-slate-100 pb-2">
-                            <span className="text-slate-700 flex items-center gap-2">
-                              <span>{getIngredientEmoji(ing.name)}</span>
-                              {ing.name}
-                            </span>
-                            <span className="font-semibold text-slate-900">{ing.amount} {ing.unit}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-slate-800">
-                        <ChefHat className="w-5 h-5 text-slate-400" /> {t('scan.steps')}
-                      </h3>
-                      <ol className="space-y-4 text-slate-700">
-                        {scannedRecipe.steps.map((step, idx) => (
-                          <li key={idx} className="flex gap-4 bg-slate-50 p-4 rounded-xl">
-                            <span className="font-bold text-orange-400 text-lg">{idx + 1}.</span>
-                            <span className="leading-relaxed">{step}</span>
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
-                  </div>
-
-                  <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end">
-                    <button 
-                      onClick={saveRecipe}
-                      className="bg-slate-900 hover:bg-slate-800 transition-colors text-white px-8 py-3.5 rounded-xl font-medium flex items-center justify-center gap-2"
-                    >
-                      <Check className="w-5 h-5" /> {t('scan.save')}
-                    </button>
-                  </div>
-                </div>
+                <ScanResultPreview 
+                  scannedRecipe={scannedRecipe}
+                  onClose={() => setScannedRecipe(null)}
+                  onSave={saveRecipe}
+                />
               )}
             </motion.div>
           )}
@@ -805,72 +677,14 @@ export default function App() {
           {/* SHOPPING LIST TAB */}
           {activeTab === 'list' && (
             <motion.div key="list" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-3xl mx-auto">
-              <h2 className="text-2xl font-semibold mb-8 flex items-center gap-3 text-slate-800">
-                <ShoppingCart className="w-7 h-7 text-orange-600" />
-                {t('shopping.title')}
-              </h2>
-
-              {selectedForMenu.size === 0 ? (
-                <div className="text-center py-20 px-4 bg-white rounded-3xl border border-slate-100">
-                  <p className="text-slate-500 mb-6 text-lg">{t('shopping.empty')}</p>
-                  <button 
-                    onClick={() => setActiveTab('library')}
-                    className="text-orange-600 font-medium hover:text-orange-700 flex items-center gap-2 mx-auto"
-                  >
-                    <BookOpen className="w-5 h-5" /> {t('shopping.viewRecipes')}
-                  </button>
-                </div>
-              ) : (
-                <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 md:p-8">
-                  <div className="mb-6 pb-6 border-b border-slate-100">
-                    <div className="flex justify-between items-center mb-4">
-                      <p className="text-slate-600 font-medium">{t('shopping.basedOn')} <span className="text-orange-600 font-bold">{selectedForMenu.size}</span> {t('shopping.recipesSelected')}</p>
-                      <button 
-                        onClick={() => setSelectedForMenu(new Set())}
-                        className="text-sm text-slate-500 hover:text-slate-800 flex items-center gap-1"
-                      >
-                        {t('shopping.uncheckAll')}
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {recipes.filter(r => selectedForMenu.has(r.id)).map(recipe => (
-                        <div key={recipe.id} className="flex items-center gap-2 bg-orange-50 text-orange-900 px-3 py-1.5 rounded-xl text-sm font-medium border border-orange-100">
-                          {recipe.title}
-                          <button 
-                            onClick={() => toggleMenuSelection(recipe.id)}
-                            className="text-orange-400 hover:text-orange-600 transition-colors"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
-                    {Object.entries(generateShoppingList()).map(([ingredient, items], idx) => (
-                      <div key={idx} className="flex items-start gap-3 p-3 hover:bg-orange-50/50 rounded-2xl transition-all group border border-transparent hover:border-orange-100">
-                        <input type="checkbox" className="w-5 h-5 rounded border-orange-200 text-orange-800 focus:ring-orange-800 mt-0.5 cursor-pointer" />
-                        <div className="flex-1">
-                          <p className="font-serif font-bold text-lg text-slate-800 capitalize leading-tight">
-                            <span className="mr-2">{getIngredientEmoji(ingredient)}</span>
-                            {ingredient}
-                          </p>
-                          {items.some(item => Number(item.total.toFixed(2)) > 0) && (
-                            <div className="flex flex-wrap gap-1.5 mt-1.5">
-                              {items.filter(item => Number(item.total.toFixed(2)) > 0).map((item, i) => (
-                                <div key={i} className="text-xs bg-white border border-orange-100 px-2 py-0.5 rounded-full text-slate-600 shadow-sm flex items-center gap-1.5">
-                                  <span className="font-bold text-orange-800">{Number(item.total.toFixed(2))} {item.unit}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <ShoppingList 
+                recipes={recipes}
+                selectedForMenu={selectedForMenu}
+                onToggleMenu={toggleMenuSelection}
+                onClearMenu={() => setSelectedForMenu(new Set())}
+                onViewLibrary={() => setActiveTab('library')}
+                generateShoppingList={generateShoppingList}
+              />
             </motion.div>
           )}
 
@@ -971,527 +785,51 @@ export default function App() {
         </div>
       </nav>
 
-      {/* RECIPE DETAIL MODAL */}
-      <AnimatePresence>
-        {viewingRecipe && (
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-orange-900/40 backdrop-blur-sm"
-            onClick={() => setViewingRecipe(null)}
-          >
-            <motion.div 
-              initial={{ scale: 0.9, y: 20 }} 
-              animate={{ scale: 1, y: 0 }} 
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-[#FDFCFB] w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[40px] shadow-2xl border border-orange-100/50"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="bg-orange-50/50 p-8 md:p-12 relative">
-                <div className="absolute top-8 right-8 flex items-center gap-3">
-                  {!isEditing ? (
-                    <button 
-                      onClick={() => {
-                        if (!isPremium) {
-                          setShowPremiumModal(true);
-                          return;
-                        }
-                        setEditForm(viewingRecipe);
-                        setIsEditing(true);
-                      }}
-                      className="text-slate-400 hover:text-orange-900 bg-white rounded-full p-3 shadow-sm transition-all hover:scale-110 active:scale-90 relative"
-                    >
-                      {!isPremium && <Crown className="w-3 h-3 absolute -top-1 -right-1 text-orange-500" />}
-                      <Pencil className="w-5 h-5" />
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={handleUpdateRecipe}
-                      className="text-white bg-orange-700 hover:bg-orange-800 rounded-full p-3 shadow-sm transition-all hover:scale-110 active:scale-90"
-                    >
-                      <Save className="w-5 h-5" />
-                    </button>
-                  )}
-                  <button 
-                    onClick={() => {
-                      setViewingRecipe(null);
-                      setIsEditing(false);
-                    }} 
-                    className="text-slate-400 hover:text-orange-900 bg-white rounded-full p-3 shadow-sm transition-all hover:rotate-90 active:scale-90"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="bg-orange-900 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">{viewingRecipe.source}</span>
-                  {viewingRecipe.sourceUrl && !isEditing && (
-                    <a href={viewingRecipe.sourceUrl} target="_blank" rel="noreferrer" className="text-orange-600 hover:text-orange-800 transition-colors">
-                      <LinkIcon className="w-4 h-4" />
-                    </a>
-                  )}
-                </div>
-                
-                {isEditing && editForm ? (
-                  <input 
-                    type="text" 
-                    value={editForm.title}
-                    onChange={e => setEditForm({...editForm, title: e.target.value})}
-                    className="w-full text-4xl md:text-5xl font-serif font-bold leading-tight text-slate-900 mb-6 bg-white/50 border border-orange-200 rounded-2xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                ) : (
-                  <h2 className="text-4xl md:text-5xl font-serif font-bold leading-tight text-slate-900 mb-6">{viewingRecipe.title}</h2>
-                )}
-                
-                {isEditing && editForm ? (
-                  <div className="mb-8">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">{t('scan.tags') || 'Tags'} ({t('scan.separated') || 'séparés par des virgules'})</label>
-                    <input 
-                      type="text" 
-                      value={(editForm.tags || []).join(', ')}
-                      onChange={e => setEditForm({...editForm, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean)})}
-                      className="w-full bg-white/50 border border-orange-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      placeholder="Végétarien, Rapide, Dessert..."
-                    />
-                  </div>
-                ) : (
-                  viewingRecipe.tags && viewingRecipe.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-8">
-                      {viewingRecipe.tags.map(tag => (
-                        <span key={tag} className="bg-white/60 backdrop-blur-sm border border-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5">
-                          <Tag className="w-3 h-3" /> {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )
-                )}
+      {/* MODALS */}
+      <RecipeDetailModal 
+        recipe={viewingRecipe}
+        onClose={() => setViewingRecipe(null)}
+        isPremium={isPremium}
+        onShowPremium={() => setShowPremiumModal(true)}
+        onUpdate={handleUpdateRecipe}
+        onToggleMenu={toggleMenuSelection}
+        isSelected={viewingRecipe ? selectedForMenu.has(viewingRecipe.id) : false}
+      />
 
-                <div className="flex flex-wrap gap-8 text-sm font-bold text-orange-900/60 uppercase tracking-widest">
-                  {isEditing && editForm ? (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-orange-500" />
-                        <input type="text" value={editForm.prepTime || ''} onChange={e => setEditForm({...editForm, prepTime: e.target.value})} placeholder={t('scan.prep')} className="bg-white/50 border border-orange-200 rounded-lg px-2 py-1 w-24 focus:outline-none" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-orange-500" />
-                        <input type="text" value={editForm.cookTime || ''} onChange={e => setEditForm({...editForm, cookTime: e.target.value})} placeholder={t('scan.cook')} className="bg-white/50 border border-orange-200 rounded-lg px-2 py-1 w-24 focus:outline-none" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <ChefHat className="w-5 h-5 text-orange-500" />
-                        <input type="text" value={editForm.complexity || ''} onChange={e => setEditForm({...editForm, complexity: e.target.value})} placeholder={t('scan.complexity')} className="bg-white/50 border border-orange-200 rounded-lg px-2 py-1 w-24 focus:outline-none" />
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <span className="flex items-center gap-2"><Clock className="w-5 h-5 text-orange-500" /> {t('scan.prep')}: {viewingRecipe.prepTime || '-'}</span>
-                      <span className="flex items-center gap-2"><Clock className="w-5 h-5 text-orange-500" /> {t('scan.cook')}: {viewingRecipe.cookTime || '-'}</span>
-                      <span className="flex items-center gap-2"><ChefHat className="w-5 h-5 text-orange-500" /> {t('scan.complexity')}: {viewingRecipe.complexity || '-'}</span>
-                    </>
-                  )}
-                </div>
-              </div>
-              
-              <div className={`p-8 md:p-12 ${isEditing ? 'flex flex-col gap-12' : 'grid md:grid-cols-5 gap-12'}`}>
-                <div className={isEditing ? '' : 'md:col-span-2'}>
-                  <h3 className="font-serif font-bold text-2xl mb-8 flex items-center gap-3 text-slate-800 border-b border-orange-100 pb-4 italic">
-                    <ShoppingCart className="w-6 h-6 text-orange-400" /> {t('scan.ingredients')}
-                  </h3>
-                  <ul className="space-y-5">
-                    {isEditing && editForm ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {editForm.ingredients.map((ing, idx) => (
-                          <div key={idx} className="flex gap-1.5 sm:gap-2 items-center bg-white p-2 rounded-xl border border-orange-200 shadow-sm focus-within:border-orange-400 focus-within:ring-1 focus-within:ring-orange-400 transition-all">
-                            <input type="text" value={ing.name} onChange={e => {
-                              const newIngs = [...editForm.ingredients];
-                              newIngs[idx].name = e.target.value;
-                              setEditForm({...editForm, ingredients: newIngs});
-                            }} className="flex-1 min-w-0 bg-transparent px-1 sm:px-2 py-1 text-sm focus:outline-none font-medium text-slate-700" placeholder="Nom" />
-                            <div className="w-px h-6 bg-orange-100 shrink-0"></div>
-                            <input type="text" value={ing.amount} onChange={e => {
-                              const newIngs = [...editForm.ingredients];
-                              newIngs[idx].amount = e.target.value;
-                              setEditForm({...editForm, ingredients: newIngs});
-                            }} className="w-10 sm:w-12 min-w-0 shrink-0 bg-transparent px-1 py-1 text-sm focus:outline-none text-center text-slate-600" placeholder="Qté" />
-                            <div className="w-px h-6 bg-orange-100 shrink-0"></div>
-                            <input type="text" value={ing.unit} onChange={e => {
-                              const newIngs = [...editForm.ingredients];
-                              newIngs[idx].unit = e.target.value;
-                              setEditForm({...editForm, ingredients: newIngs});
-                            }} className="w-14 sm:w-16 min-w-0 shrink-0 bg-transparent px-1 py-1 text-sm focus:outline-none text-center text-slate-600" placeholder="Unité" />
-                            <button onClick={() => {
-                              const newIngs = editForm.ingredients.filter((_, i) => i !== idx);
-                              setEditForm({...editForm, ingredients: newIngs});
-                            }} className="p-1.5 shrink-0 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
-                          </div>
-                        ))}
-                        <button onClick={() => {
-                          setEditForm({...editForm, ingredients: [...editForm.ingredients, {name: '', amount: '', unit: ''}]});
-                        }} className="h-full min-h-[48px] border-2 border-dashed border-orange-200 rounded-xl text-sm text-orange-600 font-bold flex items-center justify-center gap-2 hover:bg-orange-50 hover:border-orange-300 transition-colors"><Plus className="w-4 h-4" /> {t('scan.addIngredient') || 'Ajouter un ingrédient'}</button>
-                      </div>
-                    ) : (
-                      viewingRecipe.ingredients.map((ing, idx) => (
-                        <li key={idx} className="flex justify-between items-center group">
-                          <span className="text-slate-700 font-serif italic text-lg capitalize flex items-center gap-2">
-                            <span>{getIngredientEmoji(ing.name)}</span>
-                            {ing.name}
-                          </span>
-                          {((ing.amount && parseFloat(String(ing.amount).replace(',', '.')) > 0) || ing.unit) && (
-                            <div className="flex items-center gap-3">
-                              <span className="h-px w-6 bg-orange-100 group-hover:w-10 transition-all"></span>
-                              <span className="font-bold text-orange-900 bg-orange-100/30 px-3 py-1 rounded-xl text-sm">
-                                {ing.amount && parseFloat(String(ing.amount).replace(',', '.')) > 0 ? ing.amount : ''} {ing.unit}
-                              </span>
-                            </div>
-                          )}
-                        </li>
-                      ))
-                    )}
-                  </ul>
-                </div>
+      <AuthModal 
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        mode={authMode}
+        setMode={setAuthMode}
+        email={email}
+        setEmail={setEmail}
+        password={password}
+        setPassword={setPassword}
+        error={authError}
+        onGoogleLogin={handleGoogleLogin}
+        onEmailAuth={handleEmailAuth}
+      />
 
-                <div className={isEditing ? '' : 'md:col-span-3'}>
-                  <h3 className="font-serif font-bold text-2xl mb-8 flex items-center gap-3 text-slate-800 border-b border-orange-100 pb-4 italic">
-                    <ChefHat className="w-6 h-6 text-orange-400" /> {t('scan.steps')}
-                  </h3>
-                  <ol className="space-y-8 text-slate-700">
-                    {isEditing && editForm ? (
-                      <div className="space-y-4">
-                        {editForm.steps.map((step, idx) => (
-                          <div key={idx} className="flex gap-4 items-start bg-white p-4 rounded-2xl border border-orange-200 shadow-sm focus-within:border-orange-400 focus-within:ring-1 focus-within:ring-orange-400 transition-all">
-                            <span className="font-serif font-bold text-2xl text-orange-300 shrink-0">{idx + 1}.</span>
-                            <textarea 
-                              value={step} 
-                              onChange={e => {
-                                const newSteps = [...editForm.steps];
-                                newSteps[idx] = e.target.value;
-                                setEditForm({...editForm, steps: newSteps});
-                              }} 
-                              className="flex-1 bg-transparent text-sm focus:outline-none min-h-[80px] resize-y text-slate-700 leading-relaxed" 
-                              placeholder="Étape de préparation..."
-                            />
-                            <button onClick={() => {
-                              const newSteps = editForm.steps.filter((_, i) => i !== idx);
-                              setEditForm({...editForm, steps: newSteps});
-                            }} className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors shrink-0"><Trash2 className="w-5 h-5" /></button>
-                          </div>
-                        ))}
-                        <button onClick={() => {
-                          setEditForm({...editForm, steps: [...editForm.steps, '']});
-                        }} className="w-full py-4 border-2 border-dashed border-orange-200 rounded-2xl text-sm text-orange-600 font-bold flex items-center justify-center gap-2 hover:bg-orange-50 hover:border-orange-300 transition-colors"><Plus className="w-5 h-5" /> Ajouter une étape</button>
-                      </div>
-                    ) : (
-                      viewingRecipe.steps.map((step, idx) => (
-                        <li key={idx} className="flex gap-6 group">
-                          <span className="font-serif font-bold text-4xl text-orange-100 group-hover:text-orange-300 transition-colors shrink-0 leading-none">{String(idx + 1).padStart(2, '0')}</span>
-                          <p className="leading-relaxed text-lg font-serif italic">{step}</p>
-                        </li>
-                      ))
-                    )}
-                  </ol>
-                </div>
-              </div>
+      <SettingsModal 
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        language={language}
+        onLanguageChange={setLanguage}
+        onLogout={handleLogout}
+      />
 
-              <div className="p-10 bg-orange-50/30 flex justify-center">
-                <button 
-                  onClick={() => { toggleMenuSelection(viewingRecipe.id); setViewingRecipe(null); }}
-                  className={`px-12 py-5 rounded-[24px] font-bold transition-all flex items-center gap-3 shadow-2xl active:scale-95 ${selectedForMenu.has(viewingRecipe.id) ? 'bg-slate-900 text-white shadow-slate-900/20' : 'bg-orange-900 text-white hover:bg-orange-950 shadow-orange-900/30'}`}
-                >
-                  {selectedForMenu.has(viewingRecipe.id) ? <><X className="w-5 h-5" /> Retirer du menu</> : <><Check className="w-5 h-5" /> Ajouter au menu</>}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <PremiumModal 
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        onSubscribe={handleStripeCheckout}
+        loading={loading}
+      />
 
-      {/* AUTH MODAL */}
-      <AnimatePresence>
-        {showAuthModal && (
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md"
-            onClick={() => setShowAuthModal(false)}
-          >
-            <motion.div 
-              initial={{ scale: 0.9, y: 20 }} 
-              animate={{ scale: 1, y: 0 }} 
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-md rounded-[32px] shadow-2xl overflow-hidden"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="p-8">
-                <div className="flex justify-between items-center mb-8">
-                  <h2 className="text-2xl font-serif font-bold text-slate-900">
-                    {authMode === 'login' ? t('auth.login') : t('auth.signup')}
-                  </h2>
-                  <button onClick={() => setShowAuthModal(false)} className="text-slate-400 hover:text-slate-600">
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-
-                <button 
-                  onClick={handleGoogleLogin}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl border-2 border-slate-100 font-bold text-slate-700 hover:bg-slate-50 transition-all mb-6"
-                >
-                  <div className="w-5 h-5 bg-slate-100 rounded-full flex items-center justify-center text-[10px] font-black">G</div> {t('auth.google')}
-                </button>
-
-                <div className="relative flex items-center gap-4 mb-6">
-                  <div className="flex-1 h-px bg-slate-100"></div>
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('auth.or')}</span>
-                  <div className="flex-1 h-px bg-slate-100"></div>
-                </div>
-
-                <form onSubmit={handleEmailAuth} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-1">{t('auth.email')}</label>
-                    <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                      <input 
-                        type="email" 
-                        required
-                        value={email}
-                        onChange={e => setEmail(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-orange-200 focus:bg-white transition-all outline-none"
-                        placeholder="votre@email.com"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-1">{t('auth.password')}</label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                      <input 
-                        type="password" 
-                        required
-                        value={password}
-                        onChange={e => setPassword(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-orange-200 focus:bg-white transition-all outline-none"
-                        placeholder="••••••••"
-                      />
-                    </div>
-                  </div>
-
-                  {authError && (
-                    <p className="text-sm text-red-500 font-medium px-1">{authError}</p>
-                  )}
-
-                  <button 
-                    type="submit"
-                    className="w-full py-4 rounded-2xl bg-orange-700 text-white font-bold shadow-lg shadow-orange-700/20 hover:bg-orange-800 transition-all"
-                  >
-                    {authMode === 'login' ? t('auth.signIn') : t('auth.signUp')}
-                  </button>
-                </form>
-
-                <p className="text-center mt-8 text-sm text-slate-500">
-                  {authMode === 'login' ? t('auth.noAccount') : t('auth.hasAccount')}
-                  <button 
-                    onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
-                    className="ml-2 text-orange-700 font-bold hover:underline"
-                  >
-                    {authMode === 'login' ? t('auth.signUp') : t('auth.signIn')}
-                  </button>
-                </p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* SETTINGS MODAL */}
-      <AnimatePresence>
-        {showSettingsModal && (
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
-          >
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden relative"
-            >
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-orange-600" />
-                  {t('settings.title')}
-                </h2>
-                <button onClick={() => setShowSettingsModal(false)} className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-full transition-colors">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              
-              <div className="p-6 space-y-8">
-                {/* Language Section */}
-                <div>
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <span className="w-4 h-px bg-slate-200"></span>
-                    {t('settings.language')}
-                    <span className="flex-1 h-px bg-slate-200"></span>
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button 
-                      onClick={() => setLanguage('fr')}
-                      className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all ${language === 'fr' ? 'border-orange-500 bg-orange-50 text-orange-900 font-bold shadow-sm' : 'border-slate-100 text-slate-600 hover:border-slate-200 hover:bg-slate-50'}`}
-                    >
-                      <span className="text-xl">🇫🇷</span> Français
-                    </button>
-                    <button 
-                      onClick={() => setLanguage('en')}
-                      className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all ${language === 'en' ? 'border-orange-500 bg-orange-50 text-orange-900 font-bold shadow-sm' : 'border-slate-100 text-slate-600 hover:border-slate-200 hover:bg-slate-50'}`}
-                    >
-                      <span className="text-xl">🇬🇧</span> English
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Account Section */}
-                {user && (
-                  <div>
-                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                      <span className="w-4 h-px bg-slate-200"></span>
-                      {t('settings.account')}
-                      <span className="flex-1 h-px bg-slate-200"></span>
-                    </h3>
-                    <button 
-                      onClick={() => {
-                        handleLogout();
-                        setShowSettingsModal(false);
-                      }}
-                      className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-red-50 text-red-600 font-bold hover:bg-red-100 transition-all border border-red-100"
-                    >
-                      <LogOut className="w-5 h-5" /> {t('settings.logout')}
-                    </button>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* PREMIUM MODAL */}
-      <AnimatePresence>
-        {showPremiumModal && (
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
-            onClick={() => setShowPremiumModal(false)}
-          >
-            <motion.div 
-              initial={{ scale: 0.9, y: 20 }} 
-              animate={{ scale: 1, y: 0 }} 
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl relative max-h-[95vh] overflow-y-auto"
-              onClick={e => e.stopPropagation()}
-            >
-              <button 
-                onClick={() => setShowPremiumModal(false)}
-                className="absolute top-4 right-4 text-white/80 hover:text-white bg-black/20 hover:bg-black/40 rounded-full p-2 transition-all z-10"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              
-              <div className="bg-gradient-to-br from-orange-400 to-orange-600 p-6 sm:p-8 text-center relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 backdrop-blur-md shadow-inner border border-white/30">
-                  <Star className="w-8 h-8 sm:w-10 sm:h-10 text-white fill-current" />
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white mb-2 relative z-10">ChefScan Premium</h2>
-                <p className="text-orange-100 font-medium relative z-10 text-sm sm:text-base">Libérez tout le potentiel de votre cuisine</p>
-              </div>
-
-              <div className="p-6 sm:p-8">
-                <ul className="space-y-4 mb-8">
-                  <li className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center shrink-0 mt-0.5">
-                      <Check className="w-3.5 h-3.5 text-orange-600" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-800">{t('premium.unlimited')}</p>
-                      <p className="text-sm text-slate-500">{t('premium.unlimitedDesc')}</p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center shrink-0 mt-0.5">
-                      <Check className="w-3.5 h-3.5 text-orange-600" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-800">{t('premium.advanced')}</p>
-                      <p className="text-sm text-slate-500">{t('premium.advancedDesc')}</p>
-                    </div>
-                  </li>
-                </ul>
-
-                <button 
-                  onClick={handleStripeCheckout}
-                  disabled={loading}
-                  className="w-full py-4 rounded-2xl bg-slate-900 text-white font-bold shadow-xl shadow-slate-900/20 hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
-                >
-                  {loading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Sparkles className="w-5 h-5" />
-                  )}
-                  {loading ? t('premium.redirecting') : t('premium.subscribe')}
-                </button>
-                <p className="text-center text-xs text-slate-400 mt-4">{t('premium.noCommitment')}</p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* DELETE CONFIRMATION MODAL */}
-      <AnimatePresence>
-        {recipeToDelete && (
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
-            onClick={() => setRecipeToDelete(null)}
-          >
-            <motion.div 
-              initial={{ scale: 0.9, y: 20 }} 
-              animate={{ scale: 1, y: 0 }} 
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-sm rounded-[32px] p-8 text-center shadow-2xl"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Trash2 className="w-8 h-8" />
-              </div>
-              <h3 className="text-2xl font-serif font-bold text-slate-800 mb-2">{t('settings.deleteTitle')}</h3>
-              <p className="text-slate-500 mb-8">{t('settings.deleteDesc')}</p>
-              
-              <div className="flex gap-4">
-                <button 
-                  onClick={() => setRecipeToDelete(null)}
-                  className="flex-1 py-3.5 rounded-2xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-all"
-                >
-                  {t('settings.cancel')}
-                </button>
-                <button 
-                  onClick={() => deleteRecipe(recipeToDelete)}
-                  className="flex-1 py-3.5 rounded-2xl font-bold text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-600/20 transition-all"
-                >
-                  {t('settings.delete')}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
+      <DeleteConfirmModal 
+        isOpen={!!recipeToDelete}
+        onClose={() => setRecipeToDelete(null)}
+        onConfirm={handleDeleteRecipe}
+      />
     </div>
   );
 }
