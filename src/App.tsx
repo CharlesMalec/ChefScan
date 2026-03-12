@@ -16,6 +16,7 @@ import SettingsModal from './components/modals/SettingsModal';
 import PremiumModal from './components/modals/PremiumModal';
 import DeleteConfirmModal from './components/modals/DeleteConfirmModal';
 import RecipeDetailModal from './components/modals/RecipeDetailModal';
+import LegalModal from './components/modals/LegalModal';
 import RecipeCard from './components/RecipeCard';
 import ScanOptions from './components/scan/ScanOptions';
 import ScanResultPreview from './components/scan/ScanResultPreview';
@@ -46,6 +47,7 @@ export default function App() {
   const [editForm, setEditForm] = useState<Recipe | null>(null);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | null>(null);
   const [recipeToDelete, setRecipeToDelete] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingSaveRef = useRef(false);
@@ -735,6 +737,21 @@ export default function App() {
                       <p className="text-sm text-slate-500 font-sans">{t('about.role')}</p>
                     </div>
                   </div>
+                  
+                  <div className="pt-8 mt-8 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-sm font-sans">
+                    <button 
+                      onClick={() => setLegalModalType('terms')}
+                      className="text-slate-500 hover:text-orange-600 transition-colors"
+                    >
+                      Mentions Légales
+                    </button>
+                    <button 
+                      onClick={() => setLegalModalType('privacy')}
+                      className="text-slate-500 hover:text-orange-600 transition-colors"
+                    >
+                      Politique de Confidentialité
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -829,6 +846,12 @@ export default function App() {
         isOpen={!!recipeToDelete}
         onClose={() => setRecipeToDelete(null)}
         onConfirm={handleDeleteRecipe}
+      />
+
+      <LegalModal 
+        isOpen={!!legalModalType}
+        onClose={() => setLegalModalType(null)}
+        type={legalModalType}
       />
     </div>
   );
