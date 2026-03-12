@@ -20,50 +20,50 @@ const ScanOptions: React.FC<ScanOptionsProps> = ({
   const { t } = useLanguage();
 
   return (
-    <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+    <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
       {/* Image Upload */}
-      <div className="bg-white p-10 rounded-[32px] shadow-sm border border-slate-100 flex flex-col items-center justify-center hover:border-orange-200 transition-all hover:shadow-xl hover:shadow-orange-500/5 group">
-        <div className="w-24 h-24 bg-orange-50 text-orange-600 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
-          <ImageIcon className="w-12 h-12" />
+      <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center justify-center hover:border-orange-200 transition-all group">
+        <div className="w-16 h-16 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <ImageIcon className="w-8 h-8" />
         </div>
-        <h3 className="font-serif font-bold text-2xl mb-3 text-slate-900">{t('scan.bookTitle')}</h3>
-        <p className="text-slate-500 mb-10 leading-relaxed text-center">{t('scan.bookDesc')}</p>
+        <h3 className="font-serif font-black text-2xl mb-2 text-slate-900 tracking-tight">{t('scan.bookTitle')}</h3>
+        <p className="text-slate-500 mb-8 text-center text-sm leading-relaxed">{t('scan.bookDesc')}</p>
         
         <button 
           type="button"
           disabled={loading}
           onClick={onImageClick}
-          className="w-full bg-orange-600 hover:bg-orange-700 transition-all text-white py-4 rounded-2xl font-bold shadow-lg shadow-orange-600/20 flex items-center justify-center gap-3 disabled:opacity-70 active:scale-[0.98]"
+          className="w-full bg-orange-700 hover:bg-orange-800 transition-all text-white py-4 rounded-xl font-bold shadow-lg shadow-orange-700/20 flex items-center justify-center gap-2 disabled:opacity-70 active:scale-[0.98]"
         >
-          {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> {t('scan.analyzing')}</> : <><ImageIcon className="w-5 h-5" /> {t('scan.takePhoto')}</>}
+          {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {t('scan.analyzing')}</> : <><ImageIcon className="w-4 h-4" /> {t('scan.takePhoto')}</>}
         </button>
       </div>
 
       {/* URL Import */}
-      <div className="bg-white p-10 rounded-[32px] shadow-sm border border-slate-100 flex flex-col items-center justify-center hover:border-blue-200 transition-all hover:shadow-xl hover:shadow-blue-500/5 group">
-        <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
-          <LinkIcon className="w-12 h-12" />
+      <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center justify-center hover:border-slate-200 transition-all group">
+        <div className="w-16 h-16 bg-slate-50 text-slate-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <LinkIcon className="w-8 h-8" />
         </div>
-        <h3 className="font-serif font-bold text-2xl mb-3 text-slate-900">{t('scan.webTitle')}</h3>
-        <p className="text-slate-500 mb-10 leading-relaxed text-center">{t('scan.webDesc')}</p>
+        <h3 className="font-serif font-black text-2xl mb-2 text-slate-900 tracking-tight">{t('scan.webTitle')}</h3>
+        <p className="text-slate-500 mb-8 text-center text-sm leading-relaxed">{t('scan.webDesc')}</p>
 
         <form 
           onSubmit={onUrlSubmit}
-          className="flex flex-col gap-4 w-full"
+          className="flex flex-col gap-3 w-full"
         >
           <input 
             type="url" 
-            placeholder="https://recette-delicieuse.com/..." 
+            placeholder="https://..." 
             value={urlInput}
             onChange={(e) => setUrlInput(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
           />
           <button 
             type="submit"
             disabled={loading || !urlInput}
-            className="w-full bg-slate-900 hover:bg-slate-800 transition-all text-white py-4 rounded-2xl font-bold shadow-lg shadow-slate-900/20 disabled:opacity-50 flex items-center justify-center gap-3 active:scale-[0.98]"
+            className="w-full bg-slate-900 hover:bg-slate-800 transition-all text-white py-4 rounded-xl font-bold shadow-lg shadow-slate-900/20 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98]"
           >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><ChevronRight className="w-5 h-5" /> {t('scan.importLink')}</>}
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><ChevronRight className="w-4 h-4" /> {t('scan.importLink')}</>}
           </button>
         </form>
       </div>

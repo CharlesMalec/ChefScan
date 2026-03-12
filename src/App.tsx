@@ -419,294 +419,295 @@ export default function App() {
       />
 
       {/* Mobile Header */}
-      <header className="md:hidden bg-[#F5F2ED]/80 backdrop-blur-md px-6 py-4 shadow-sm sticky top-0 z-40 flex justify-between items-center border-b border-orange-100">
-        <h1 className="text-2xl font-serif font-bold text-orange-900 flex items-center gap-2">
-          <ChefHat className="w-6 h-6 text-orange-700" />
-          ChefScan
-        </h1>
+      <header className="md:hidden bg-white/80 backdrop-blur-xl px-5 py-4 shadow-sm sticky top-0 z-40 flex justify-between items-center border-b border-orange-100">
+        <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-700 rounded-xl flex items-center justify-center shadow-lg shadow-orange-700/20">
+          <ChefHat className="w-5 h-5 text-white" />
+        </div>
+        <h1 className="text-2xl font-serif font-black text-orange-950 tracking-tight italic">ChefScan</h1>
         <div className="flex items-center gap-2">
           {selectedForMenu.size > 0 && (
-            <button onClick={() => setActiveTab('list')} className="relative p-2">
-              <ShoppingCart className="w-6 h-6 text-orange-900" />
-              <span className="absolute -top-1 -right-1 bg-orange-700 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+            <button onClick={() => setActiveTab('list')} className="relative p-2.5 bg-orange-50 rounded-xl text-orange-900 border border-orange-100">
+              <ShoppingCart className="w-5 h-5" />
+              <span className="absolute -top-1 -right-1 bg-orange-700 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
                 {selectedForMenu.size}
               </span>
             </button>
           )}
           {user ? (
-            <div className="flex items-center gap-2">
-              {!isPremium ? (
-                <button onClick={() => setShowPremiumModal(true)} className="px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-600 text-white text-xs font-bold rounded-full shadow-md flex items-center gap-1">
-                  <Crown className="w-3 h-3" /> {t('nav.premium')}
-                </button>
-              ) : (
-                <button onClick={handleManageSubscription} disabled={loading} className="px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-full shadow-md flex items-center gap-1 disabled:opacity-70">
-                  {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Crown className="w-3 h-3" />} {t('nav.manage')}
-                </button>
-              )}
-              <button 
-                onClick={() => setShowSettingsModal(true)} 
-                className="p-2 text-orange-900 hover:bg-orange-50 rounded-full transition-colors"
-                title={t('settings.title')}
-              >
-                <Settings className="w-6 h-6" />
-              </button>
-            </div>
+            <button 
+              onClick={() => setShowSettingsModal(true)} 
+              className="p-2.5 bg-slate-50 text-slate-400 rounded-xl border border-slate-100"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
           ) : (
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={() => setShowSettingsModal(true)} 
-                className="p-2 text-orange-900 hover:bg-orange-50 rounded-full transition-colors"
-                title={t('settings.title')}
-              >
-                <Settings className="w-6 h-6" />
-              </button>
-              <button onClick={() => setShowAuthModal(true)} className="p-2 text-orange-900">
-                <User className="w-6 h-6" />
-              </button>
-            </div>
+            <button 
+              onClick={() => setShowAuthModal(true)}
+              className="p-2.5 bg-orange-700 text-white rounded-xl shadow-lg shadow-orange-700/20"
+            >
+              <User className="w-5 h-5" />
+            </button>
           )}
         </div>
       </header>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-orange-50 h-screen sticky top-0 p-8">
-        <h1 className="text-3xl font-serif font-bold text-orange-900 flex items-center gap-3 mb-12">
-          <ChefHat className="w-8 h-8 text-orange-700" />
-          ChefScan
-        </h1>
+      <aside className="hidden md:flex flex-col w-72 bg-[#FDFCFB] border-r border-orange-100/50 h-screen sticky top-0 p-6">
+        <div className="flex items-center justify-between mb-10">
+          <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-700 rounded-xl flex items-center justify-center shadow-lg shadow-orange-700/20">
+            <ChefHat className="w-6 h-6 text-white" />
+          </div>
+          <h1 className="text-2xl font-serif font-black text-orange-950 tracking-tight italic">ChefScan</h1>
+          <button 
+            onClick={() => setShowSettingsModal(true)}
+            className="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all"
+            title={t('settings.title')}
+          >
+            <Settings className="w-5 h-5" />
+          </button>
+        </div>
         
-        <nav className="flex flex-col gap-4 flex-1">
+        <nav className="flex flex-col gap-2 flex-1">
           <button 
             onClick={() => setActiveTab('library')}
-            className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all font-medium ${activeTab === 'library' ? 'bg-orange-100 text-orange-900 shadow-sm' : 'text-slate-600 hover:bg-orange-50/50'}`}
+            className={`flex items-center gap-3 px-5 py-3.5 rounded-xl transition-all font-bold text-base ${activeTab === 'library' ? 'bg-orange-900 text-white shadow-lg shadow-orange-900/20' : 'text-slate-500 hover:bg-orange-50 hover:text-orange-900'}`}
           >
-            <BookOpen className="w-5 h-5" /> {t('nav.recipes')}
+            <BookOpen className="w-5 h-5" />
+            {t('nav.recipes')}
           </button>
           <button 
             onClick={() => setActiveTab('scan')}
-            className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all font-medium ${activeTab === 'scan' ? 'bg-orange-100 text-orange-900 shadow-sm' : 'text-slate-600 hover:bg-orange-50/50'}`}
+            className={`flex items-center gap-3 px-5 py-3.5 rounded-xl transition-all font-bold text-base ${activeTab === 'scan' ? 'bg-orange-900 text-white shadow-lg shadow-orange-900/20' : 'text-slate-500 hover:bg-orange-50 hover:text-orange-900'}`}
           >
-            <Plus className="w-5 h-5" /> {t('nav.add')}
+            <Plus className="w-5 h-5" />
+            {t('nav.add')}
           </button>
           <button 
             onClick={() => setActiveTab('list')}
-            className={`flex items-center justify-between px-5 py-3.5 rounded-2xl transition-all font-medium ${activeTab === 'list' ? 'bg-orange-100 text-orange-900 shadow-sm' : 'text-slate-600 hover:bg-orange-50/50'}`}
+            className={`flex items-center justify-between px-5 py-3.5 rounded-xl transition-all font-bold text-base ${activeTab === 'list' ? 'bg-orange-900 text-white shadow-lg shadow-orange-900/20' : 'text-slate-500 hover:bg-orange-50 hover:text-orange-900'}`}
           >
             <div className="flex items-center gap-3">
-              <ShoppingCart className="w-5 h-5" /> {t('nav.shopping')}
+              <ShoppingCart className="w-5 h-5" />
+              {t('nav.shopping')}
             </div>
             {selectedForMenu.size > 0 && (
-              <span className="bg-orange-700 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${activeTab === 'list' ? 'bg-orange-700 text-white' : 'bg-orange-100 text-orange-700'}`}>
                 {selectedForMenu.size}
               </span>
             )}
           </button>
         </nav>
 
-        <div className="mt-auto pt-8 border-t border-orange-50">
+        <div className="mt-auto space-y-6">
           {user ? (
             <div className="flex flex-col gap-4">
-              {!isPremium ? (
+              {!isPremium && (
                 <button 
                   onClick={() => setShowPremiumModal(true)}
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-400 to-orange-600 text-white px-4 py-3 rounded-2xl font-bold shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 transition-all hover:-translate-y-0.5"
+                  className="w-full group relative overflow-hidden bg-slate-900 text-white px-6 py-4 rounded-2xl font-black text-sm shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1"
                 >
-                  <Star className="w-4 h-4 fill-current" /> {t('nav.premium')}
-                </button>
-              ) : (
-                <button 
-                  onClick={handleManageSubscription}
-                  disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 bg-slate-900 text-white px-4 py-3 rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition-all hover:-translate-y-0.5 disabled:opacity-70"
-                >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" />} {t('nav.manage')}
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="relative flex items-center justify-center gap-2">
+                    <Star className="w-4 h-4 fill-current text-orange-400 group-hover:text-white" /> 
+                    <span>{t('nav.premium')}</span>
+                  </div>
                 </button>
               )}
-              <div className="flex items-center gap-3 px-2">
-                {user.photoURL ? (
-                  <img src={user.photoURL} alt="" className="w-10 h-10 rounded-full border-2 border-orange-100" referrerPolicy="no-referrer" />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-700 font-bold">
-                    {user.email?.[0].toUpperCase()}
-                  </div>
-                )}
+              
+              <div className="flex items-center gap-4 p-4 bg-white rounded-[24px] border border-orange-100 shadow-sm hover:shadow-md transition-all">
+                <div className="relative">
+                  {user.photoURL ? (
+                    <img src={user.photoURL} alt="" className="w-12 h-12 rounded-2xl border-2 border-orange-50 shadow-sm object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-700 font-black text-xl shadow-sm">
+                      {user.email?.[0].toUpperCase()}
+                    </div>
+                  )}
+                  {isPremium && (
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-orange-700 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                      <Crown className="w-2.5 h-2.5 text-white" />
+                    </div>
+                  )}
+                </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-slate-900 truncate">{user.displayName || user.email?.split('@')[0]}</p>
-                  <div className="flex items-center gap-1">
-                    {isPremium ? (
-                      <span className="text-[10px] bg-orange-700 text-white px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5">
-                        <Crown className="w-2.5 h-2.5" /> PREMIUM
-                      </span>
-                    ) : (
-                      <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-bold">
-                        {recipes.length}/10 RECETTES
-                      </span>
-                    )}
-                  </div>
+                  <p className="text-sm font-black text-slate-900 truncate leading-tight mb-1">{user.displayName || user.email?.split('@')[0]}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    {isPremium ? 'Membre Premium' : `${recipes.length}/10 RECETTES`}
+                  </p>
                 </div>
               </div>
-              <button 
-                onClick={() => setShowSettingsModal(true)} 
-                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-slate-500 hover:bg-orange-50 hover:text-orange-600 transition-all text-sm font-medium"
-              >
-                <Settings className="w-4 h-4" /> {t('settings.title')}
-              </button>
-              <button 
-                onClick={() => setShowAboutModal(true)} 
-                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-slate-500 hover:bg-orange-50 hover:text-orange-600 transition-all text-sm font-medium"
-              >
-                <Heart className="w-4 h-4" /> {t('nav.about')}
-              </button>
             </div>
           ) : (
-            <div className="flex flex-col gap-3">
-              <button 
-                onClick={() => setShowAboutModal(true)} 
-                className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-all"
-              >
-                <Heart className="w-5 h-5" /> {t('nav.about')}
-              </button>
-              <button 
-                onClick={() => setShowSettingsModal(true)} 
-                className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-orange-100 text-orange-900 font-bold hover:bg-orange-200 transition-all"
-              >
-                <Settings className="w-5 h-5" /> {t('settings.title')}
-              </button>
-              <button 
-                onClick={() => setShowAuthModal(true)}
-                className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-orange-700 text-white font-bold shadow-lg shadow-orange-700/20 hover:bg-orange-800 transition-all"
-              >
-                <User className="w-5 h-5" /> {t('settings.login')}
-              </button>
-            </div>
+            <button 
+              onClick={() => setShowAuthModal(true)}
+              className="w-full flex items-center justify-center gap-3 px-6 py-5 rounded-2xl bg-orange-700 text-white font-black shadow-xl shadow-orange-700/20 hover:bg-orange-800 transition-all hover:-translate-y-1"
+            >
+              <User className="w-5 h-5" /> {t('settings.login')}
+            </button>
           )}
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 min-w-0 p-4 md:p-8 pb-24 md:pb-8 max-w-7xl mx-auto w-full">
-        <AnimatePresence mode="wait">
-          {/* LIBRARY TAB */}
-          {activeTab === 'library' && (
-            <motion.div key="library" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-              <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-8">
-                <h2 className="text-2xl font-semibold text-slate-800 shrink-0">{t('library.title')} ({filteredRecipes.length})</h2>
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:w-auto">
-                  <div className="relative flex-1 sm:w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input 
-                      type="text" 
-                      placeholder={t('library.search')} 
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                    />
+      <main className="flex-1 min-w-0 p-4 md:p-8 pb-24 md:pb-8 max-w-7xl mx-auto w-full flex flex-col">
+        <div className="flex-grow">
+          <AnimatePresence mode="wait">
+            {/* LIBRARY TAB */}
+            {activeTab === 'library' && (
+              <motion.div key="library" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-10">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black text-orange-600 uppercase tracking-[0.2em]">{t('library.title')}</p>
+                    <h2 className="text-4xl font-serif font-black text-slate-900 tracking-tight">{t('nav.recipes')}</h2>
                   </div>
-                  
-                  {allTags.length > 0 && (
-                    <div className="relative shrink-0">
-                      <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                      <input
-                        list="tag-options"
-                        value={selectedTag || ''}
-                        onChange={(e) => setSelectedTag(e.target.value || null)}
-                        placeholder={t('library.filterByTag')}
-                        className="w-full sm:w-48 pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 text-slate-700 font-medium"
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full xl:w-auto">
+                    <div className="relative flex-1 sm:w-64">
+                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input 
+                        type="text" 
+                        placeholder={t('library.search')} 
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all shadow-sm"
                       />
-                      <datalist id="tag-options">
-                        {allTags.map(tag => (
-                          <option key={tag} value={tag} />
-                        ))}
-                      </datalist>
-                      {selectedTag && (
-                        <button 
-                          onClick={() => setSelectedTag(null)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 bg-white text-slate-400 hover:text-slate-600"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      )}
                     </div>
-                  )}
+                    
+                    {allTags.length > 0 && (
+                      <div className="relative shrink-0">
+                        <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        <input
+                          list="tag-options"
+                          value={selectedTag || ''}
+                          onChange={(e) => setSelectedTag(e.target.value || null)}
+                          placeholder={t('library.filterByTag')}
+                          className="w-full sm:w-56 pl-11 pr-10 py-4 bg-white border border-orange-100 rounded-[20px] text-sm focus:outline-none focus:ring-4 focus:ring-orange-500/10 text-slate-900 font-black shadow-sm"
+                        />
+                        <datalist id="tag-options">
+                          {allTags.map(tag => (
+                            <option key={tag} value={tag} />
+                          ))}
+                        </datalist>
+                        {selectedTag && (
+                          <button 
+                            onClick={() => setSelectedTag(null)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white text-slate-400 hover:text-slate-600"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    )}
 
-                  {selectedForMenu.size > 0 && (
-                    <button 
-                      onClick={() => setActiveTab('list')}
-                      className="text-sm bg-orange-100 text-orange-700 px-4 py-2 rounded-full font-medium flex items-center justify-center gap-2 hover:bg-orange-200 transition-colors shrink-0"
-                    >
-                      <ShoppingCart className="w-4 h-4" />
-                      <span className="hidden sm:inline">{t('library.shoppingList')}</span> ({selectedForMenu.size})
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {recipes.length === 0 ? (
-                <div className="text-center py-20 px-4 max-w-md mx-auto">
-                  <div className="w-24 h-24 bg-orange-100 text-orange-700 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-                    <BookOpen className="w-12 h-12" />
+                    {selectedForMenu.size > 0 && (
+                      <button 
+                        onClick={() => setActiveTab('list')}
+                        className="text-sm bg-orange-900 text-white px-6 py-4 rounded-[20px] font-black flex items-center justify-center gap-3 hover:bg-orange-950 transition-all shadow-xl shadow-orange-900/20 hover:-translate-y-0.5 shrink-0"
+                      >
+                        <ShoppingCart className="w-5 h-5" />
+                        <span className="hidden sm:inline">{t('library.shoppingList')}</span>
+                        <span className="bg-orange-700 px-2 py-0.5 rounded-full text-[10px]">{selectedForMenu.size}</span>
+                      </button>
+                    )}
                   </div>
-                  <h3 className="text-2xl font-serif font-bold text-slate-800 mb-4">{t('library.emptyTitle')}</h3>
-                  <p className="text-slate-500 mb-10 leading-relaxed">{t('library.emptyDesc')}</p>
-                  <button 
-                    onClick={() => setActiveTab('scan')}
-                    className="bg-orange-800 hover:bg-orange-900 transition-all text-white px-10 py-4 rounded-2xl font-bold shadow-xl shadow-orange-900/20 active:scale-95"
-                  >
-                    {t('library.addFirst')}
-                  </button>
                 </div>
-              ) : (
-                <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 max-w-lg mx-auto lg:max-w-none">
-                  {filteredRecipes.map(recipe => (
-                    <RecipeCard 
-                      key={recipe.id}
-                      recipe={recipe}
-                      onView={setViewingRecipe}
-                      onDelete={setRecipeToDelete}
-                      onToggleMenu={toggleMenuSelection}
-                      isSelected={selectedForMenu.has(recipe.id)}
+
+                {recipes.length === 0 ? (
+                  <div className="text-center py-20 px-4 max-w-md mx-auto">
+                    <div className="w-24 h-24 bg-orange-100 text-orange-700 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+                      <BookOpen className="w-12 h-12" />
+                    </div>
+                    <h3 className="text-2xl font-serif font-bold text-slate-800 mb-4">{t('library.emptyTitle')}</h3>
+                    <p className="text-slate-500 mb-10 leading-relaxed">{t('library.emptyDesc')}</p>
+                    <button 
+                      onClick={() => setActiveTab('scan')}
+                      className="bg-orange-800 hover:bg-orange-900 transition-all text-white px-10 py-4 rounded-2xl font-bold shadow-xl shadow-orange-900/20 active:scale-95"
+                    >
+                      {t('library.addFirst')}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 max-w-lg mx-auto lg:max-w-none">
+                    {filteredRecipes.map(recipe => (
+                      <RecipeCard 
+                        key={recipe.id}
+                        recipe={recipe}
+                        onView={setViewingRecipe}
+                        onDelete={setRecipeToDelete}
+                        onToggleMenu={toggleMenuSelection}
+                        isSelected={selectedForMenu.has(recipe.id)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {/* SCANNER TAB */}
+            {activeTab === 'scan' && (
+              <motion.div key="scan" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-5xl mx-auto">
+                {!scannedRecipe ? (
+                  <>
+                    <div className="flex flex-col items-center text-center mb-16 space-y-4">
+                      <p className="text-xs font-black text-orange-600 uppercase tracking-[0.3em]">{t('nav.add')}</p>
+                      <h2 className="text-5xl lg:text-7xl font-serif font-black text-slate-900 tracking-tighter leading-none">Ajouter une Recette</h2>
+                      <p className="text-slate-500 max-w-lg mx-auto text-lg font-medium leading-relaxed">
+                        Importez vos recettes préférées en un clin d'œil, que ce soit depuis un livre ou un site web.
+                      </p>
+                    </div>
+                    <ScanOptions 
+                      loading={loading}
+                      onImageClick={() => fileInputRef.current?.click()}
+                      urlInput={urlInput}
+                      setUrlInput={setUrlInput}
+                      onUrlSubmit={(e) => { e.preventDefault(); handleUrlSubmit(); }}
                     />
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          )}
+                  </>
+                ) : (
+                  <ScanResultPreview 
+                    scannedRecipe={scannedRecipe}
+                    onClose={() => setScannedRecipe(null)}
+                    onSave={saveRecipe}
+                  />
+                )}
+              </motion.div>
+            )}
 
-          {/* SCANNER TAB */}
-          {activeTab === 'scan' && (
-            <motion.div key="scan" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-4xl mx-auto">
-              {!scannedRecipe ? (
-                <ScanOptions 
-                  loading={loading}
-                  onImageClick={() => fileInputRef.current?.click()}
-                  urlInput={urlInput}
-                  setUrlInput={setUrlInput}
-                  onUrlSubmit={(e) => { e.preventDefault(); handleUrlSubmit(); }}
+            {/* SHOPPING LIST TAB */}
+            {activeTab === 'list' && (
+              <motion.div key="list" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-3xl mx-auto">
+                <ShoppingList 
+                  recipes={recipes}
+                  selectedForMenu={selectedForMenu}
+                  onToggleMenu={toggleMenuSelection}
+                  onClearMenu={() => setSelectedForMenu(new Set())}
+                  onViewLibrary={() => setActiveTab('library')}
+                  generateShoppingList={generateShoppingList}
                 />
-              ) : (
-                <ScanResultPreview 
-                  scannedRecipe={scannedRecipe}
-                  onClose={() => setScannedRecipe(null)}
-                  onSave={saveRecipe}
-                />
-              )}
-            </motion.div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
-          {/* SHOPPING LIST TAB */}
-          {activeTab === 'list' && (
-            <motion.div key="list" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-3xl mx-auto">
-              <ShoppingList 
-                recipes={recipes}
-                selectedForMenu={selectedForMenu}
-                onToggleMenu={toggleMenuSelection}
-                onClearMenu={() => setSelectedForMenu(new Set())}
-                onViewLibrary={() => setActiveTab('library')}
-                generateShoppingList={generateShoppingList}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Footer Banner */}
+        <footer className="mt-auto pt-12 pb-24 md:pb-8 border-t border-orange-100 px-6 text-center">
+          <div className="flex flex-col items-center justify-center gap-4 text-xs font-medium text-slate-400">
+            <p className="order-2 md:order-1">© 2026 ChefScan • Fait avec ❤️ par Charles</p>
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8 order-1 md:order-2">
+              <button 
+                onClick={() => setLegalModalType('terms')}
+                className="hover:text-orange-600 transition-colors"
+              >
+                Mentions Légales
+              </button>
+              <span className="hidden md:inline w-1 h-1 bg-slate-200 rounded-full"></span>
+              <button 
+                onClick={() => setLegalModalType('privacy')}
+                className="hover:text-orange-600 transition-colors"
+              >
+                Politique de Confidentialité
+              </button>
+            </div>
+          </div>
+        </footer>
       </main>
 
       {/* Mobile Bottom Navigation */}
