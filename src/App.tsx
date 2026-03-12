@@ -17,6 +17,7 @@ import PremiumModal from './components/modals/PremiumModal';
 import DeleteConfirmModal from './components/modals/DeleteConfirmModal';
 import RecipeDetailModal from './components/modals/RecipeDetailModal';
 import LegalModal from './components/modals/LegalModal';
+import AboutModal from './components/modals/AboutModal';
 import RecipeCard from './components/RecipeCard';
 import ScanOptions from './components/scan/ScanOptions';
 import ScanResultPreview from './components/scan/ScanResultPreview';
@@ -47,6 +48,7 @@ export default function App() {
   const [editForm, setEditForm] = useState<Recipe | null>(null);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
   const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | null>(null);
   const [recipeToDelete, setRecipeToDelete] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -407,6 +409,15 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#F5F2ED] flex flex-col md:flex-row font-sans text-slate-900">
+      {/* Hidden File Input */}
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleImageUpload} 
+        accept="image/*" 
+        className="hidden" 
+      />
+
       {/* Mobile Header */}
       <header className="md:hidden bg-[#F5F2ED]/80 backdrop-blur-md px-6 py-4 shadow-sm sticky top-0 z-40 flex justify-between items-center border-b border-orange-100">
         <h1 className="text-2xl font-serif font-bold text-orange-900 flex items-center gap-2">
@@ -490,12 +501,6 @@ export default function App() {
               </span>
             )}
           </button>
-          <button 
-            onClick={() => setActiveTab('about')}
-            className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all font-medium ${activeTab === 'about' ? 'bg-orange-100 text-orange-900 shadow-sm' : 'text-slate-600 hover:bg-orange-50/50'}`}
-          >
-            <Heart className="w-5 h-5" /> {t('nav.about')}
-          </button>
         </nav>
 
         <div className="mt-auto pt-8 border-t border-orange-50">
@@ -546,9 +551,21 @@ export default function App() {
               >
                 <Settings className="w-4 h-4" /> {t('settings.title')}
               </button>
+              <button 
+                onClick={() => setShowAboutModal(true)} 
+                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-slate-500 hover:bg-orange-50 hover:text-orange-600 transition-all text-sm font-medium"
+              >
+                <Heart className="w-4 h-4" /> {t('nav.about')}
+              </button>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
+              <button 
+                onClick={() => setShowAboutModal(true)} 
+                className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-all"
+              >
+                <Heart className="w-5 h-5" /> {t('nav.about')}
+              </button>
               <button 
                 onClick={() => setShowSettingsModal(true)} 
                 className="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl bg-orange-100 text-orange-900 font-bold hover:bg-orange-200 transition-all"
@@ -689,73 +706,6 @@ export default function App() {
               />
             </motion.div>
           )}
-
-          {/* ABOUT TAB */}
-          {activeTab === 'about' && (
-            <motion.div key="about" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-3xl mx-auto">
-              <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-orange-50">
-                <div className="h-64 sm:h-80 relative">
-                  <img 
-                    src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?q=80&w=2000&auto=format&fit=crop" 
-                    alt="Plat traditionnel, pot-au-feu" 
-                    className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex items-end p-8">
-                    <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white">{t('about.title')}</h2>
-                  </div>
-                </div>
-                
-                <div className="p-8 sm:p-12 space-y-6 text-lg text-slate-700 leading-relaxed font-serif">
-                  <p>
-                    <span className="text-4xl font-bold text-orange-800 float-left mr-2 mt-1 leading-none">{t('about.letter')}</span>
-                    {t('about.p1')}
-                  </p>
-                  
-                  <p>
-                    {t('about.p2')}
-                  </p>
-
-                  <p>
-                    {t('about.p3')}
-                  </p>
-
-                  <div className="my-10 border-l-4 border-orange-300 pl-6 italic text-xl text-slate-600">
-                    {t('about.quote')}
-                  </div>
-
-                  <p>
-                    {t('about.p4')}
-                  </p>
-
-                  <div className="pt-8 mt-8 border-t border-orange-100 flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-800 font-bold text-2xl font-sans">
-                      C
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-900 font-sans">Charles</p>
-                      <p className="text-sm text-slate-500 font-sans">{t('about.role')}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="pt-8 mt-8 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-sm font-sans">
-                    <button 
-                      onClick={() => setLegalModalType('terms')}
-                      className="text-slate-500 hover:text-orange-600 transition-colors"
-                    >
-                      Mentions Légales
-                    </button>
-                    <button 
-                      onClick={() => setLegalModalType('privacy')}
-                      className="text-slate-500 hover:text-orange-600 transition-colors"
-                    >
-                      Politique de Confidentialité
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
         </AnimatePresence>
       </main>
 
@@ -791,14 +741,6 @@ export default function App() {
               </span>
             )}
           </button>
-
-          <button 
-            onClick={() => setActiveTab('about')}
-            className={`flex flex-col items-center p-2 w-20 transition-all ${activeTab === 'about' ? 'text-orange-900 scale-110' : 'text-slate-400 hover:text-slate-600'}`}
-          >
-            <Heart className="w-6 h-6 mb-1" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">{t('nav.about')}</span>
-          </button>
         </div>
       </nav>
 
@@ -830,9 +772,9 @@ export default function App() {
       <SettingsModal 
         isOpen={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
-        language={language}
-        onLanguageChange={setLanguage}
+        user={user}
         onLogout={handleLogout}
+        onShowAbout={() => setShowAboutModal(true)}
       />
 
       <PremiumModal 
@@ -852,6 +794,11 @@ export default function App() {
         isOpen={!!legalModalType}
         onClose={() => setLegalModalType(null)}
         type={legalModalType}
+      />
+
+      <AboutModal 
+        isOpen={showAboutModal}
+        onClose={() => setShowAboutModal(false)}
       />
     </div>
   );

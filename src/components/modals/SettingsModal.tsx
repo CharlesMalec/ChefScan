@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Settings, LogOut } from 'lucide-react';
+import { X, Settings, LogOut, Heart } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Language } from '../../translations';
 
@@ -9,13 +9,15 @@ interface SettingsModalProps {
   onClose: () => void;
   user: any;
   onLogout: () => void;
+  onShowAbout: () => void;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
   user,
-  onLogout
+  onLogout,
+  onShowAbout
 }) => {
   const { t, language, setLanguage } = useLanguage();
 
@@ -68,6 +70,24 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     <span className="text-xl">🇬🇧</span> English
                   </button>
                 </div>
+              </div>
+
+              {/* About Section */}
+              <div>
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <span className="w-4 h-px bg-slate-200"></span>
+                  {t('nav.about')}
+                  <span className="flex-1 h-px bg-slate-200"></span>
+                </h3>
+                <button 
+                  onClick={() => {
+                    onShowAbout();
+                    onClose();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-orange-50 text-orange-600 font-bold hover:bg-orange-100 transition-all border border-orange-100"
+                >
+                  <Heart className="w-5 h-5" /> {t('about.title')}
+                </button>
               </div>
               
               {/* Account Section */}
