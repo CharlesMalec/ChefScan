@@ -11,12 +11,19 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "charles.malec@hotmail.fr" && request.auth.token.email_verified == true));
+    }
+
     // Rules for User Profiles
     match /users/{userId} {
-      // A user can only read and write their own profile
       allow read: if isOwner(userId);
-      allow write: if isOwner(userId) 
-        && request.resource.data.uid == userId; // Empêche de changer l'ID
+      allow create: if isOwner(userId) && request.resource.data.uid == userId;
+      allow update: if isOwner(userId) && (
+        !('uid' in request.resource.data) || request.resource.data.uid == userId
+      );
     }
 
     // Rules for Stripe Extension (customers collection)
@@ -36,22 +43,18 @@ service cloud.firestore {
 
     // Rules for Recipes
     match /recipes/{recipeId} {
-      // A user can only read their own recipes
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
       
-      // A user can only create a recipe if they set themselves as the owner
       allow create: if isAuthenticated() 
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.title is string 
         && request.resource.data.title.size() < 200;
       
-      // A user can only update or delete their own recipes
       allow update: if isAuthenticated() 
-        && resource.data.userId == request.auth.uid
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.title is string;
+        && (resource.data.userId == request.auth.uid || isAdmin())
+        && request.resource.data.userId == resource.data.userId;
 
-      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
     }
   }
 }

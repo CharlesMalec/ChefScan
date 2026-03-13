@@ -89,10 +89,13 @@ export default function App() {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Recipe[];
+      const data = snapshot.docs.map(doc => {
+        const docData = doc.data();
+        return {
+          ...docData,
+          id: doc.id, // Ensure id from Firestore doc is used and not overwritten by data
+        };
+      }) as Recipe[];
       setRecipes(data);
     }, (error) => {
       console.error('Firestore Error (Recipes):', error);
@@ -305,6 +308,8 @@ export default function App() {
     }
 
     if (scannedRecipe) {
+      if (loading) return; // Prevent double save
+      setLoading(true);
       try {
         const recipeToSave = {
           ...scannedRecipe,
@@ -312,6 +317,9 @@ export default function App() {
           createdAt: Date.now(),
           tags: scannedRecipe.tags || []
         };
+        
+        // Remove id if it exists in scannedRecipe to avoid confusion
+        if ('id' in recipeToSave) delete (recipeToSave as any).id;
         
         await addDoc(collection(db, 'recipes'), recipeToSave);
         
@@ -331,8 +339,9 @@ export default function App() {
   };
 
   const deleteRecipe = async (id: string) => {
-    if (!user) return;
+    if (!user || loading) return;
     
+    setLoading(true);
     try {
       await deleteDoc(doc(db, 'recipes', id));
       
@@ -348,6 +357,9 @@ export default function App() {
       setRecipeToDelete(null);
     } catch (e) {
       console.error("Failed to delete recipe", e);
+      alert("Erreur lors de la suppression de la recette. Vérifiez vos permissions.");
+    } finally {
+      setLoading(false);
     }
   };
 
