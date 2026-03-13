@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ImageIcon, Link as LinkIcon, Loader2, ChevronRight } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 
@@ -18,6 +18,20 @@ const ScanOptions: React.FC<ScanOptionsProps> = ({
   onUrlSubmit
 }) => {
   const { t } = useLanguage();
+  const [messageIndex, setMessageIndex] = useState(0);
+  const loadingMessages = t('scan.loadingMessages') as unknown as string[];
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (loading) {
+      interval = setInterval(() => {
+        setMessageIndex((prev) => (prev + 1) % loadingMessages.length);
+      }, 3000);
+    } else {
+      setMessageIndex(0);
+    }
+    return () => clearInterval(interval);
+  }, [loading, loadingMessages.length]);
 
   return (
     <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
@@ -29,14 +43,25 @@ const ScanOptions: React.FC<ScanOptionsProps> = ({
         <h3 className="font-serif font-black text-2xl mb-2 text-slate-900 tracking-tight">{t('scan.bookTitle')}</h3>
         <p className="text-slate-500 mb-8 text-center text-sm leading-relaxed">{t('scan.bookDesc')}</p>
         
-        <button 
-          type="button"
-          disabled={loading}
-          onClick={onImageClick}
-          className="w-full bg-orange-700 hover:bg-orange-800 transition-all text-white py-4 rounded-xl font-bold shadow-lg shadow-orange-700/20 flex items-center justify-center gap-2 disabled:opacity-70 active:scale-[0.98]"
-        >
-          {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {t('scan.analyzing')}</> : <><ImageIcon className="w-4 h-4" /> {t('scan.takePhoto')}</>}
-        </button>
+        <div className="w-full space-y-3">
+          <button 
+            type="button"
+            disabled={loading}
+            onClick={onImageClick}
+            className="w-full bg-orange-700 hover:bg-orange-800 transition-all text-white py-4 rounded-xl font-bold shadow-lg shadow-orange-700/20 flex items-center justify-center gap-2 disabled:opacity-70 active:scale-[0.98]"
+          >
+            {loading ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> {loadingMessages[messageIndex]}</>
+            ) : (
+              <><ImageIcon className="w-4 h-4" /> {t('scan.takePhoto')}</>
+            )}
+          </button>
+          {loading && (
+            <p className="text-[10px] text-orange-600 font-black text-center animate-pulse uppercase tracking-widest">
+              {t('scan.loadingNote')}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* URL Import */}
@@ -58,13 +83,24 @@ const ScanOptions: React.FC<ScanOptionsProps> = ({
             onChange={(e) => setUrlInput(e.target.value)}
             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
           />
-          <button 
-            type="submit"
-            disabled={loading || !urlInput}
-            className="w-full bg-slate-900 hover:bg-slate-800 transition-all text-white py-4 rounded-xl font-bold shadow-lg shadow-slate-900/20 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98]"
-          >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><ChevronRight className="w-4 h-4" /> {t('scan.importLink')}</>}
-          </button>
+          <div className="space-y-3">
+            <button 
+              type="submit"
+              disabled={loading || !urlInput}
+              className="w-full bg-slate-900 hover:bg-slate-800 transition-all text-white py-4 rounded-xl font-bold shadow-lg shadow-slate-900/20 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98]"
+            >
+              {loading ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> {loadingMessages[messageIndex]}</>
+              ) : (
+                <><ChevronRight className="w-4 h-4" /> {t('scan.importLink')}</>
+              )}
+            </button>
+            {loading && (
+              <p className="text-[10px] text-slate-500 font-black text-center animate-pulse uppercase tracking-widest">
+                {t('scan.loadingNote')}
+              </p>
+            )}
+          </div>
         </form>
       </div>
     </div>

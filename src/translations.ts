@@ -59,7 +59,16 @@ export const translations = {
       save: "Ajouter à ma bibliothèque",
       tags: "Tags",
       separated: "séparés par des virgules",
-      addIngredient: "Ajouter un ingrédient"
+      addIngredient: "Ajouter un ingrédient",
+      loadingMessages: [
+        "Découpe du menu...",
+        "Préparation de la recette...",
+        "Mise en place des ingrédients...",
+        "Cuisson des données...",
+        "Dressage de l'assiette...",
+        "Finalisation du plat..."
+      ],
+      loadingNote: "Cela peut prendre environ 1 minute..."
     },
     settings: {
       title: "Paramètres",
@@ -154,7 +163,16 @@ export const translations = {
       save: "Add to my library",
       tags: "Tags",
       separated: "separated by commas",
-      addIngredient: "Add an ingredient"
+      addIngredient: "Add an ingredient",
+      loadingMessages: [
+        "Slicing the menu...",
+        "Preparing the recipe...",
+        "Setting up ingredients...",
+        "Cooking the data...",
+        "Plating the dish...",
+        "Finalizing the meal..."
+      ],
+      loadingNote: "This may take about 1 minute..."
     },
     settings: {
       title: "Settings",
