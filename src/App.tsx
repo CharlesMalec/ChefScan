@@ -29,6 +29,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'library' | 'scan' | 'list' | 'about'>('library');
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [selectedForMenu, setSelectedForMenu] = useState<Set<string>>(new Set());
+  const [menuServings, setMenuServings] = useState<Record<string, number>>({});
   const [viewingRecipe, setViewingRecipe] = useState<Recipe | null>(null);
   
   // Auth UI State
@@ -371,26 +372,66 @@ export default function App() {
 
   const toggleMenuSelection = (id: string) => {
     const newSet = new Set(selectedForMenu);
-    if (newSet.has(id)) newSet.delete(id);
-    else newSet.add(id);
+    const newServings = { ...menuServings };
+    if (newSet.has(id)) {
+      newSet.delete(id);
+      delete newServings[id];
+    } else {
+      newSet.add(id);
+      const recipe = recipes.find(r => r.id === id);
+      newServings[id] = recipe?.servings || 4;
+    }
     setSelectedForMenu(newSet);
+    setMenuServings(newServings);
   };
 
   const generateShoppingList = () => {
-    const list: Record<string, { total: number; unit: string; sources: string[] }[]> = {};
+    const list: Record<string, { total: number; unit: string; sources: string[], isNullAmount: boolean }[]> = {};
     
+    const normalizeUnit = (unit: string) => {
+      let u = unit.toLowerCase().trim();
+      if (u === 'null' || u === 'undefined') return '';
+      if (u === 'gousses' || u === 'gousse') return 'gousse';
+      if (u === 'cuillères' || u === 'cuillère') return 'cuillère';
+      if (u === 'pincées' || u === 'pincée') return 'pincée';
+      if (u === 'tranches' || u === 'tranche') return 'tranche';
+      if (u === 'grammes' || u === 'g') return 'g';
+      if (u === 'entiers' || u === 'entier') return 'entier';
+      if (u.endsWith('s') && u.length > 3) return u.slice(0, -1);
+      return u;
+    };
+
+    const parseAmount = (amountStr: any) => {
+      if (amountStr === null || amountStr === undefined || amountStr === 'null' || amountStr === 'undefined' || amountStr === '') return 0;
+      const clean = String(amountStr).replace(',', '.').trim();
+      if (clean.includes('/')) {
+        const [num, den] = clean.split('/').map(s => parseFloat(s.trim()));
+        if (den) return num / den;
+      }
+      return parseFloat(clean) || 0;
+    };
+
     recipes.filter(r => selectedForMenu.has(r.id)).forEach(r => {
+      const originalServings = r.servings || 4;
+      const targetServings = menuServings[r.id] || originalServings;
+      const ratio = targetServings / originalServings;
+
       r.ingredients.forEach(i => {
-        if (!i || !i.name) return;
+        if (!i || !i.name || i.name === 'null') return;
         const name = i.name.toLowerCase().trim();
-        const amountStr = String(i.amount || '0');
-        const amount = parseFloat(amountStr.replace(',', '.')) || 0;
-        const unit = (i.unit || '').toLowerCase().trim();
+        const baseAmount = parseAmount(i.amount);
+        const amount = baseAmount * ratio;
+        
+        const isNullAmount = baseAmount === 0 && (!i.amount || String(i.amount).trim() === '' || String(i.amount) === 'null');
+
+        let unit = (i.unit || '').toLowerCase().trim();
+        if (unit === 'null' || unit === 'undefined') unit = '';
+        const normUnit = normalizeUnit(unit);
         
         if (!list[name]) list[name] = [];
         
-        // Try to find if we already have this unit for this ingredient
-        const existing = list[name].find(item => item.unit === unit);
+        // Try to find if we already have this normalized unit for this ingredient
+        const existing = list[name].find(item => normalizeUnit(item.unit) === normUnit && item.isNullAmount === isNullAmount);
         if (existing) {
           existing.total += amount;
           if (!existing.sources.includes(r.title)) {
@@ -399,8 +440,9 @@ export default function App() {
         } else {
           list[name].push({
             total: amount,
-            unit: unit,
-            sources: [r.title]
+            unit: unit, // Keep original unit for display
+            sources: [r.title],
+            isNullAmount
           });
         }
       });
@@ -560,7 +602,7 @@ export default function App() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 min-w-0 p-4 md:p-8 pb-24 md:pb-8 max-w-7xl mx-auto w-full flex flex-col">
+      <main className="flex-1 min-w-0 p-4 md:p-8 pb-24 md:pb-8 max-w-[100rem] mx-auto w-full flex flex-col">
         <div className="flex-grow">
           <AnimatePresence mode="wait">
             {/* LIBRARY TAB */}
@@ -637,7 +679,7 @@ export default function App() {
                     </button>
                   </div>
                 ) : (
-                  <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 max-w-lg mx-auto lg:max-w-none">
+                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 max-w-lg mx-auto sm:max-w-none">
                     {filteredRecipes.map(recipe => (
                       <RecipeCard 
                         key={recipe.id}
@@ -689,8 +731,13 @@ export default function App() {
                 <ShoppingList 
                   recipes={recipes}
                   selectedForMenu={selectedForMenu}
+                  menuServings={menuServings}
+                  onUpdateServings={(id, servings) => setMenuServings(prev => ({ ...prev, [id]: servings }))}
                   onToggleMenu={toggleMenuSelection}
-                  onClearMenu={() => setSelectedForMenu(new Set())}
+                  onClearMenu={() => {
+                    setSelectedForMenu(new Set());
+                    setMenuServings({});
+                  }}
                   onViewLibrary={() => setActiveTab('library')}
                   generateShoppingList={generateShoppingList}
                 />

@@ -13,6 +13,7 @@ export interface Recipe {
   prepTime: string;
   cookTime: string;
   complexity: string;
+  servings?: number;
   source: 'Livre' | 'Web';
   sourceUrl?: string;
   tags: string[];

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Tag, Clock, ChefHat, ShoppingCart, Check } from 'lucide-react';
+import { X, Tag, Clock, ChefHat, ShoppingCart, Check, Users } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { getIngredientEmoji } from '../../utils';
 
@@ -35,6 +35,7 @@ const ScanResultPreview: React.FC<ScanResultPreviewProps> = ({ scannedRecipe, on
           <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-orange-500" /> {t('scan.prep')}: {scannedRecipe.prepTime || '?'}</span>
           <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-orange-500" /> {t('scan.cook')}: {scannedRecipe.cookTime || '?'}</span>
           <span className="flex items-center gap-2"><ChefHat className="w-4 h-4 text-orange-500" /> {t('scan.complexity')}: {scannedRecipe.complexity || '?'}</span>
+          <span className="flex items-center gap-2"><Users className="w-4 h-4 text-orange-500" /> {scannedRecipe.servings || 4} pers.</span>
         </div>
       </div>
       

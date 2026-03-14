@@ -7,6 +7,7 @@ const recipeSchema = {
     prepTime: { type: Type.STRING, description: "Temps de préparation (ex: 15 min)" },
     cookTime: { type: Type.STRING, description: "Temps de cuisson (ex: 30 min)" },
     complexity: { type: Type.STRING, description: "Niveau de difficulté (Facile, Moyen, Difficile)" },
+    servings: { type: Type.NUMBER, description: "Nombre de personnes ou portions (juste le chiffre, ex: 4)" },
     ingredients: {
       type: Type.ARRAY,
       items: {
