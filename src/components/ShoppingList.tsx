@@ -120,7 +120,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
               </div>
             </div>
             
-            <div className="grid md:grid-cols-2 gap-x-6 gap-y-1">
+            <div className="flex flex-col gap-y-1">
               {sortedIngredients.map(([ingredient, items], idx) => {
                 const isChecked = checkedItems.has(ingredient);
                 return (
@@ -138,7 +138,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
                       <Check className="absolute top-0.5 left-0.5 w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
                     </div>
                     <div className="flex-1 min-w-0 cursor-pointer flex items-center justify-between gap-2" onClick={() => toggleCheck(ingredient)}>
-                      <p className={`font-serif font-black text-base capitalize leading-none truncate ${isChecked ? 'text-slate-500 line-through' : 'text-slate-900'}`}>
+                      <p className={`font-serif font-bold text-sm capitalize leading-none truncate ${isChecked ? 'text-slate-500 line-through' : 'text-slate-900'}`}>
                         <span className="mr-2 inline-block">{getIngredientEmoji(ingredient)}</span>
                         {ingredient}
                       </p>
@@ -146,9 +146,9 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
                         {items.map((item, i) => {
                           const unitDisplay = formatUnit(item.total, item.unit);
                           return (
-                            <div key={i} className={`text-[11px] font-black uppercase tracking-tight px-2 py-0.5 rounded-md ${isChecked ? 'bg-slate-200 text-slate-500' : 'bg-orange-100/50 text-orange-900'}`}>
+                            <div key={i} className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${isChecked ? 'bg-slate-200 text-slate-500' : 'bg-orange-100/50 text-orange-900'}`}>
                               {item.isNullAmount ? (
-                                <span>{unitDisplay || '...'}</span>
+                                <span>{unitDisplay || 'Au goût'}</span>
                               ) : (
                                 <span>{Number(item.total.toFixed(2))}{unitDisplay ? ` ${unitDisplay}` : ''}</span>
                               )}

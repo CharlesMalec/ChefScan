@@ -61,7 +61,7 @@ const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
           initial={{ scale: 0.9, y: 20 }} 
           animate={{ scale: 1, y: 0 }} 
           exit={{ scale: 0.9, y: 20 }}
-          className="bg-[#FDFCFB] w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[32px] shadow-2xl border border-orange-100/50"
+          className="bg-[#FDFCFB] w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[32px] shadow-2xl border border-orange-100/50"
           onClick={e => e.stopPropagation()}
         >
           <div className="bg-orange-50/50 p-6 md:p-8 relative">
