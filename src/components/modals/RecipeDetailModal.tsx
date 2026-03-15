@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Pencil, Save, Link as LinkIcon, Tag, Clock, ChefHat, ShoppingCart, Trash2, Plus, Minus, Check, Crown, Users } from 'lucide-react';
 import { Recipe } from '../../types';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { getIngredientEmoji } from '../../utils';
+import { getIngredientEmoji, formatUnit } from '../../utils';
 
 interface RecipeDetailModalProps {
   recipe: Recipe | null;
@@ -233,6 +233,7 @@ const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
                     const ratio = viewServings / originalServings;
                     const baseAmount = ing.amount ? parseFloat(String(ing.amount).replace(',', '.')) : 0;
                     const scaledAmount = baseAmount > 0 ? Number((baseAmount * ratio).toFixed(2)) : '';
+                    const unitDisplay = formatUnit(scaledAmount || baseAmount, ing.unit);
                     
                     return (
                       <li key={idx} className="flex justify-between items-center group">
@@ -240,11 +241,11 @@ const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
                           <span>{getIngredientEmoji(ing.name)}</span>
                           {ing.name}
                         </span>
-                        {((scaledAmount !== '') || (ing.unit && ing.unit !== 'null')) && (
+                        {(scaledAmount !== '' || unitDisplay !== '') && (
                           <div className="flex items-center gap-2">
                             <span className="h-px w-4 bg-orange-100 group-hover:w-8 transition-all"></span>
                             <span className="font-bold text-orange-900 bg-orange-100/30 px-2.5 py-0.5 rounded-lg text-xs">
-                              {scaledAmount} {ing.unit && ing.unit !== 'null' ? ing.unit : ''}
+                              {scaledAmount} {unitDisplay}
                             </span>
                           </div>
                         )}

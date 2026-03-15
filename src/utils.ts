@@ -92,3 +92,32 @@ export const getIngredientEmoji = (name: string): string => {
   
   return '🛒'; // Default emoji
 };
+
+export const formatUnit = (amount: number | string, unit: string): string => {
+  if (!unit || unit === 'null' || unit === 'undefined') return '';
+  
+  const u = unit.toLowerCase().trim();
+  const total = typeof amount === 'string' ? parseFloat(amount.replace(',', '.')) : amount;
+
+  // Remove redundant units
+  if (u === 'entier' || u === 'entière' || u === 'entiers' || u === 'entières' || u === 'unité' || u === 'unités') {
+    return '';
+  }
+
+  if (total >= 2) {
+    if (u === 'gousse') return 'gousses';
+    if (u === 'cuillère') return 'cuillères';
+    if (u === 'pincée') return 'pincées';
+    if (u === 'tranche') return 'tranches';
+    if (u === 'pot') return 'pots';
+    if (u === 'boîte' || u === 'boite') return 'boîtes';
+    if (u === 'sachet') return 'sachets';
+    if (u === 'verre') return 'verres';
+    if (u === 'filet') return 'filets';
+    if (u === 'pavé' || u === 'pave') return 'pavés';
+    if (u === 'steak') return 'steaks';
+    if (u === 'escalope') return 'escalopes';
+  }
+
+  return unit.trim();
+};

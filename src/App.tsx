@@ -388,6 +388,32 @@ export default function App() {
   const generateShoppingList = () => {
     const list: Record<string, { total: number; unit: string; sources: string[], isNullAmount: boolean }[]> = {};
     
+    const normalizeIngredientName = (name: string) => {
+      let n = name.toLowerCase().trim();
+      
+      // Handle 'œ' ligature (e dans l'o)
+      n = n.replace(/œ/g, 'oe');
+      
+      // Basic accent normalization for better matching
+      n = n.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+      // Basic plural normalization for common French cases
+      if (n.endsWith('s') && n.length > 3) {
+        // Avoid stripping 's' from words like 'maïs', 'pois', 'ananas'
+        const exceptions = ['mais', 'pois', 'ananas', 'radis', 'cassis'];
+        if (!exceptions.includes(n)) {
+          return n.slice(0, -1);
+        }
+      }
+      if (n.endsWith('x') && n.length > 3) {
+        const exceptions = ['noix', 'prix'];
+        if (!exceptions.includes(n)) {
+          return n.slice(0, -1);
+        }
+      }
+      return n;
+    };
+
     const normalizeUnit = (unit: string) => {
       let u = unit.toLowerCase().trim();
       if (u === 'null' || u === 'undefined') return '';
@@ -418,7 +444,7 @@ export default function App() {
 
       r.ingredients.forEach(i => {
         if (!i || !i.name || i.name === 'null') return;
-        const name = i.name.toLowerCase().trim();
+        const name = normalizeIngredientName(i.name);
         const baseAmount = parseAmount(i.amount);
         const amount = baseAmount * ratio;
         

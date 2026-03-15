@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ShoppingCart, Trash2, Check, ChevronRight, Plus, Minus, X, BookOpen, Users } from 'lucide-react';
 import { Recipe } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
-import { getIngredientEmoji } from '../utils';
+import { getIngredientEmoji, formatUnit } from '../utils';
 
 interface ShoppingListProps {
   recipes: Recipe[];
@@ -41,19 +41,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
     setCheckedItems(newSet);
   };
 
-  const formatUnit = (total: number, unit: string) => {
-    let u = unit.trim();
-    if (u === 'null' || u === 'undefined') return '';
-    if (total >= 2) {
-      if (u === 'entier') return 'entiers';
-      if (u === 'gousse') return 'gousses';
-      if (u === 'cuillère') return 'cuillères';
-      if (u === 'pincée') return 'pincées';
-      if (u === 'tranche') return 'tranches';
-    }
-    return u;
-  };
-
   const sortedIngredients = (Object.entries(shoppingList) as [string, any[]][]).sort(([nameA], [nameB]) => {
     const aChecked = checkedItems.has(nameA);
     const bChecked = checkedItems.has(nameB);
@@ -85,40 +72,40 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
           </button>
         </div>
       ) : (
-        <div className="space-y-8">
-          <div className="bg-white rounded-[40px] shadow-sm border border-orange-100/50 p-8 lg:p-10">
-            <div className="mb-10 pb-10 border-b border-orange-100/50">
-              <div className="flex justify-between items-center mb-6">
-                <p className="text-slate-600 font-black uppercase text-xs tracking-widest">
+        <div className="space-y-4">
+          <div className="bg-white rounded-[32px] shadow-sm border border-orange-100/50 p-6 lg:p-8">
+            <div className="mb-6 pb-6 border-b border-orange-100/50">
+              <div className="flex justify-between items-center mb-4">
+                <p className="text-slate-600 font-black uppercase text-[10px] tracking-widest">
                   {t('shopping.basedOn')} <span className="text-orange-700">{selectedForMenu.size}</span> {t('shopping.recipesSelected')}
                 </p>
                 <button 
                   onClick={handleClearMenu}
-                  className="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-red-600 transition-colors"
+                  className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-red-600 transition-colors"
                 >
                   {t('shopping.uncheckAll')}
                 </button>
               </div>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2">
                 {recipes.filter(r => selectedForMenu.has(r.id)).map(recipe => (
-                  <div key={recipe.id} className="flex items-center gap-2 bg-white text-slate-900 pl-4 pr-2 py-2 rounded-2xl text-sm font-black border border-orange-100 shadow-sm group hover:border-orange-300 transition-all">
-                    <span className="truncate max-w-[150px]">{recipe.title}</span>
+                  <div key={recipe.id} className="flex items-center gap-2 bg-white text-slate-900 pl-3 pr-1.5 py-1.5 rounded-xl text-xs font-black border border-orange-100 shadow-sm group hover:border-orange-300 transition-all">
+                    <span className="truncate max-w-[120px]">{recipe.title}</span>
                     
-                    <div className="flex items-center gap-1.5 bg-orange-50 px-2 py-1 rounded-lg ml-1 border border-orange-100/50">
+                    <div className="flex items-center gap-1 bg-orange-50 px-1.5 py-0.5 rounded-lg ml-1 border border-orange-100/50">
                       <button 
                         onClick={() => onUpdateServings(recipe.id, Math.max(1, (menuServings[recipe.id] || recipe.servings || 4) - 1))} 
                         className="text-orange-400 hover:text-orange-700 transition-colors p-0.5"
                       >
-                        <Minus className="w-3 h-3" />
+                        <Minus className="w-2.5 h-2.5" />
                       </button>
-                      <span className="text-xs text-orange-800 w-4 text-center font-bold flex items-center justify-center gap-1">
+                      <span className="text-[9px] text-orange-800 w-3 text-center font-bold">
                         {menuServings[recipe.id] || recipe.servings || 4}
                       </span>
                       <button 
                         onClick={() => onUpdateServings(recipe.id, (menuServings[recipe.id] || recipe.servings || 4) + 1)} 
                         className="text-orange-400 hover:text-orange-700 transition-colors p-0.5"
                       >
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-2.5 h-2.5" />
                       </button>
                     </div>
 
@@ -126,45 +113,48 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
                       onClick={() => onToggleMenu(recipe.id)}
                       className="text-slate-300 hover:text-red-500 transition-colors ml-1 p-1"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 ))}
               </div>
             </div>
             
-            <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
+            <div className="grid md:grid-cols-2 gap-x-6 gap-y-1">
               {sortedIngredients.map(([ingredient, items], idx) => {
                 const isChecked = checkedItems.has(ingredient);
                 return (
-                  <div 
+                   <div 
                     key={ingredient} 
-                    className={`flex items-start gap-3 p-3 rounded-2xl transition-all group border ${isChecked ? 'opacity-40 grayscale bg-slate-50 border-transparent' : 'hover:bg-orange-50/50 border-transparent hover:border-orange-100'}`}
+                    className={`flex items-center gap-2.5 p-1.5 rounded-xl transition-all group border border-transparent ${isChecked ? 'opacity-40 grayscale bg-slate-50/50' : 'hover:bg-orange-50/30'}`}
                   >
-                    <div className="relative mt-0.5">
+                    <div className="relative shrink-0">
                       <input 
                         type="checkbox" 
                         checked={isChecked}
                         onChange={() => toggleCheck(ingredient)}
-                        className="peer w-5 h-5 rounded-md border-2 border-orange-100 text-orange-700 focus:ring-orange-500/20 cursor-pointer appearance-none checked:bg-orange-700 checked:border-orange-700 transition-all" 
+                        className="peer w-4 h-4 rounded border border-orange-200 text-orange-700 focus:ring-orange-500/20 cursor-pointer appearance-none checked:bg-orange-700 checked:border-orange-700 transition-all" 
                       />
-                      <Check className="absolute top-0.5 left-0.5 w-4 h-4 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
+                      <Check className="absolute top-0.5 left-0.5 w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
                     </div>
-                    <div className="flex-1 min-w-0 cursor-pointer" onClick={() => toggleCheck(ingredient)}>
-                      <p className={`font-serif font-black text-lg capitalize leading-tight mb-1 flex items-center gap-2 ${isChecked ? 'text-slate-500 line-through' : 'text-slate-900'}`}>
-                        <span className="text-xl">{getIngredientEmoji(ingredient)}</span>
+                    <div className="flex-1 min-w-0 cursor-pointer flex items-center justify-between gap-2" onClick={() => toggleCheck(ingredient)}>
+                      <p className={`font-serif font-black text-base capitalize leading-none truncate ${isChecked ? 'text-slate-500 line-through' : 'text-slate-900'}`}>
+                        <span className="mr-2 inline-block">{getIngredientEmoji(ingredient)}</span>
                         {ingredient}
                       </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {items.map((item, i) => (
-                          <div key={i} className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full shadow-sm ${isChecked ? 'bg-slate-200 text-slate-500 border-transparent' : 'bg-white border border-orange-100 text-orange-800'}`}>
-                            {item.isNullAmount ? (
-                              <span>{item.unit && item.unit !== 'null' ? item.unit : 'Au goût'}</span>
-                            ) : (
-                              <span>{Number(item.total.toFixed(2))} {formatUnit(item.total, item.unit)}</span>
-                            )}
-                          </div>
-                        ))}
+                      <div className="flex flex-wrap gap-1 shrink-0">
+                        {items.map((item, i) => {
+                          const unitDisplay = formatUnit(item.total, item.unit);
+                          return (
+                            <div key={i} className={`text-[11px] font-black uppercase tracking-tight px-2 py-0.5 rounded-md ${isChecked ? 'bg-slate-200 text-slate-500' : 'bg-orange-100/50 text-orange-900'}`}>
+                              {item.isNullAmount ? (
+                                <span>{unitDisplay || '...'}</span>
+                              ) : (
+                                <span>{Number(item.total.toFixed(2))}{unitDisplay ? ` ${unitDisplay}` : ''}</span>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>

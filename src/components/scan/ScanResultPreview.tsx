@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Tag, Clock, ChefHat, ShoppingCart, Check, Users } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { getIngredientEmoji } from '../../utils';
+import { getIngredientEmoji, formatUnit } from '../../utils';
 
 interface ScanResultPreviewProps {
   scannedRecipe: any;
@@ -45,15 +45,20 @@ const ScanResultPreview: React.FC<ScanResultPreviewProps> = ({ scannedRecipe, on
             <ShoppingCart className="w-5 h-5 text-slate-400" /> {t('scan.ingredients')}
           </h3>
           <ul className="space-y-3">
-            {scannedRecipe.ingredients.map((ing: any, idx: number) => (
-              <li key={idx} className="text-sm flex justify-between border-b border-slate-100 pb-2">
-                <span className="text-slate-700 flex items-center gap-2">
-                  <span>{getIngredientEmoji(ing.name)}</span>
-                  {ing.name}
-                </span>
-                <span className="font-semibold text-slate-900">{ing.amount} {ing.unit}</span>
-              </li>
-            ))}
+            {scannedRecipe.ingredients.map((ing: any, idx: number) => {
+              const unitDisplay = formatUnit(ing.amount, ing.unit);
+              return (
+                <li key={idx} className="text-sm flex justify-between border-b border-slate-100 pb-2">
+                  <span className="text-slate-700 flex items-center gap-2">
+                    <span>{getIngredientEmoji(ing.name)}</span>
+                    {ing.name}
+                  </span>
+                  {(ing.amount || unitDisplay) && (
+                    <span className="font-semibold text-slate-900">{ing.amount} {unitDisplay}</span>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
 
