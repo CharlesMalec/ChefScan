@@ -53,6 +53,7 @@ export default function App() {
   const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | null>(null);
   const [recipeToDelete, setRecipeToDelete] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const pendingSaveRef = useRef(false);
 
   // Stripe Success/Cancel handling
@@ -489,10 +490,18 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#F5F2ED] flex flex-col md:flex-row font-sans text-slate-900">
-      {/* Hidden File Input */}
+      {/* Hidden File Inputs */}
       <input 
         type="file" 
         ref={fileInputRef} 
+        onChange={handleImageUpload} 
+        accept="image/*" 
+        capture="environment"
+        className="hidden" 
+      />
+      <input 
+        type="file" 
+        ref={galleryInputRef} 
         onChange={handleImageUpload} 
         accept="image/*" 
         className="hidden" 
@@ -705,7 +714,7 @@ export default function App() {
                     </button>
                   </div>
                 ) : (
-                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 max-w-lg mx-auto sm:max-w-none">
+                  <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 max-w-lg mx-auto lg:max-w-none">
                     {filteredRecipes.map(recipe => (
                       <RecipeCard 
                         key={recipe.id}
@@ -736,6 +745,7 @@ export default function App() {
                     <ScanOptions 
                       loading={loading}
                       onImageClick={() => fileInputRef.current?.click()}
+                      onGalleryClick={() => galleryInputRef.current?.click()}
                       urlInput={urlInput}
                       setUrlInput={setUrlInput}
                       onUrlSubmit={(e) => { e.preventDefault(); handleUrlSubmit(); }}
