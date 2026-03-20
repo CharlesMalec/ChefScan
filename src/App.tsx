@@ -12,6 +12,7 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 
 // Components
 import AuthModal from './components/modals/AuthModal';
+import { LogoGenerator } from './components/LogoGenerator';
 import SettingsModal from './components/modals/SettingsModal';
 import PremiumModal from './components/modals/PremiumModal';
 import DeleteConfirmModal from './components/modals/DeleteConfirmModal';
