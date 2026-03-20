@@ -40,6 +40,15 @@ export const translations = {
       emptyDesc: "Commencez par scanner un livre de cuisine ou importer un lien depuis un site web pour créer votre collection.",
       addFirst: "Ajouter ma première recette"
     },
+    tutorial: {
+      title: "Bienvenue sur votre carnet intelligent",
+      step1Title: "1. Importez",
+      step1Desc: "Prenez en photo une recette ou collez le lien d'un blog.",
+      step2Title: "2. L'IA analyse",
+      step2Desc: "Les ingrédients et les étapes sont extraits automatiquement.",
+      step3Title: "3. Cuisinez",
+      step3Desc: "Générez votre liste de courses et passez aux fourneaux !"
+    },
     scan: {
       title: "Ajouter une recette",
       subtitle: "Choisissez votre méthode préférée pour importer une nouvelle recette dans votre bibliothèque.",
@@ -144,6 +153,15 @@ export const translations = {
       emptyTitle: "Your library is empty",
       emptyDesc: "Start by scanning a cookbook or importing a link from a website to create your collection.",
       addFirst: "Add my first recipe"
+    },
+    tutorial: {
+      title: "Welcome to your smart recipe book",
+      step1Title: "1. Import",
+      step1Desc: "Take a photo of a recipe or paste a blog link.",
+      step2Title: "2. AI analyzes",
+      step2Desc: "Ingredients and steps are extracted automatically.",
+      step3Title: "3. Cook",
+      step3Desc: "Generate your shopping list and start cooking!"
     },
     scan: {
       title: "Add a recipe",

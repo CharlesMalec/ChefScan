@@ -42,8 +42,12 @@ function getAI() {
   return new GoogleGenAI({ apiKey });
 }
 
-export async function analyzeRecipeImage(base64Image: string, mimeType: string) {
+export async function analyzeRecipeImage(base64Image: string, mimeType: string, language: string = 'fr') {
   const ai = getAI();
+  const langInstruction = language === 'en' 
+    ? "Analyze this cooking recipe image. Extract all requested information into the JSON schema. Suggest at least 3-5 relevant tags (category, diet, time, etc.). If any information is missing, deduce it or leave it empty. IMPORTANT: Translate all content (title, ingredients, steps, tags) to English."
+    : "Analyse cette image de recette de cuisine. Extrais toutes les informations demandées dans le schéma JSON. Suggère au moins 3-5 tags pertinents (catégorie, régime, temps, etc.). Si une information manque, déduis-la ou laisse vide. IMPORTANT: Traduis tout le contenu (titre, ingrédients, étapes, tags) en Français.";
+
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
@@ -56,7 +60,7 @@ export async function analyzeRecipeImage(base64Image: string, mimeType: string) 
             }
           },
           {
-            text: "Analyse cette image de recette de cuisine. Extrais toutes les informations demandées dans le schéma JSON. Suggère au moins 3-5 tags pertinents (catégorie, régime, temps, etc.). Si une information manque, déduis-la ou laisse vide."
+            text: langInstruction
           }
         ]
       },
@@ -79,12 +83,16 @@ export async function analyzeRecipeImage(base64Image: string, mimeType: string) 
   }
 }
 
-export async function analyzeRecipeUrl(url: string) {
+export async function analyzeRecipeUrl(url: string, language: string = 'fr') {
   const ai = getAI();
+  const langInstruction = language === 'en'
+    ? `Analyze the recipe in this link: ${url}. Extract all requested information into the JSON schema. IMPORTANT: Translate all content (title, ingredients, steps, tags) to English.`
+    : `Analyse la recette contenue dans ce lien : ${url}. Extrais toutes les informations demandées dans le schéma JSON. IMPORTANT: Traduis tout le contenu (titre, ingrédients, étapes, tags) en Français.`;
+
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Analyse la recette contenue dans ce lien : ${url}. Extrais toutes les informations demandées dans le schéma JSON.`,
+      contents: langInstruction,
       config: {
         tools: [{ urlContext: {} }],
         responseMimeType: "application/json",

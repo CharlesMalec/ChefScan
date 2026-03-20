@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, ShoppingCart, Plus, Loader2, User, Search, Filter, Heart, Settings, Crown, Star, ChefHat, X } from 'lucide-react';
+import { BookOpen, ShoppingCart, Plus, Loader2, User, Search, Filter, Heart, Settings, Crown, Star, ChefHat, X, Camera, Sparkles } from 'lucide-react';
 import { analyzeRecipeImage, analyzeRecipeUrl } from './services/gemini';
 import { Recipe } from './types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -271,7 +271,7 @@ export default function App() {
     setLoading(true);
     try {
       const base64String = await compressImage(file);
-      const recipeData = await analyzeRecipeImage(base64String, 'image/jpeg');
+      const recipeData = await analyzeRecipeImage(base64String, 'image/jpeg', language);
       setScannedRecipe({ ...recipeData, id: crypto.randomUUID(), source: 'Livre' });
     } catch (error: any) {
       console.error(error);
@@ -286,7 +286,7 @@ export default function App() {
     if (!urlInput) return;
     setLoading(true);
     try {
-      const recipeData = await analyzeRecipeUrl(urlInput);
+      const recipeData = await analyzeRecipeUrl(urlInput, language);
       setScannedRecipe({ ...recipeData, id: crypto.randomUUID(), source: 'Web', sourceUrl: urlInput });
       setUrlInput('');
     } catch (error) {
@@ -700,18 +700,48 @@ export default function App() {
                 </div>
 
                 {recipes.length === 0 ? (
-                  <div className="text-center py-20 px-4 max-w-md mx-auto">
-                    <div className="w-24 h-24 bg-orange-100 text-orange-700 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-                      <BookOpen className="w-12 h-12" />
+                  <div className="py-12 px-4 max-w-4xl mx-auto">
+                    <div className="text-center mb-12">
+                      <div className="w-20 h-20 bg-orange-100 text-orange-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                        <BookOpen className="w-10 h-10" />
+                      </div>
+                      <h3 className="text-3xl font-serif font-bold text-slate-800 mb-4">{t('tutorial.title')}</h3>
+                      <p className="text-slate-500 text-lg max-w-xl mx-auto">{t('library.emptyDesc')}</p>
                     </div>
-                    <h3 className="text-2xl font-serif font-bold text-slate-800 mb-4">{t('library.emptyTitle')}</h3>
-                    <p className="text-slate-500 mb-10 leading-relaxed">{t('library.emptyDesc')}</p>
-                    <button 
-                      onClick={() => setActiveTab('scan')}
-                      className="bg-orange-800 hover:bg-orange-900 transition-all text-white px-10 py-4 rounded-2xl font-bold shadow-xl shadow-orange-900/20 active:scale-95"
-                    >
-                      {t('library.addFirst')}
-                    </button>
+
+                    <div className="grid gap-6 md:grid-cols-3 mb-12">
+                      <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 text-center">
+                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                          <Camera className="w-6 h-6" />
+                        </div>
+                        <h4 className="font-bold text-slate-800 mb-2">{t('tutorial.step1Title')}</h4>
+                        <p className="text-sm text-slate-500">{t('tutorial.step1Desc')}</p>
+                      </div>
+                      <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 text-center">
+                        <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                          <Sparkles className="w-6 h-6" />
+                        </div>
+                        <h4 className="font-bold text-slate-800 mb-2">{t('tutorial.step2Title')}</h4>
+                        <p className="text-sm text-slate-500">{t('tutorial.step2Desc')}</p>
+                      </div>
+                      <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 text-center">
+                        <div className="w-12 h-12 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                          <ChefHat className="w-6 h-6" />
+                        </div>
+                        <h4 className="font-bold text-slate-800 mb-2">{t('tutorial.step3Title')}</h4>
+                        <p className="text-sm text-slate-500">{t('tutorial.step3Desc')}</p>
+                      </div>
+                    </div>
+
+                    <div className="text-center">
+                      <button 
+                        onClick={() => setActiveTab('scan')}
+                        className="bg-orange-800 hover:bg-orange-900 transition-all text-white px-10 py-4 rounded-2xl font-bold shadow-xl shadow-orange-900/20 active:scale-95 inline-flex items-center gap-2"
+                      >
+                        <Plus className="w-5 h-5" />
+                        {t('library.addFirst')}
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 max-w-lg mx-auto lg:max-w-none">
@@ -735,11 +765,10 @@ export default function App() {
               <motion.div key="scan" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="max-w-5xl mx-auto">
                 {!scannedRecipe ? (
                   <>
-                    <div className="flex flex-col items-center text-center mb-16 space-y-4">
-                      <p className="text-xs font-black text-orange-600 uppercase tracking-[0.3em]">{t('nav.add')}</p>
-                      <h2 className="text-5xl lg:text-7xl font-serif font-black text-slate-900 tracking-tighter leading-none">Ajouter une Recette</h2>
+                    <div className="flex flex-col items-center text-center mb-12 space-y-4">
+                      <h2 className="text-4xl lg:text-5xl font-serif font-black text-slate-900 tracking-tight leading-none">{t('scan.title')}</h2>
                       <p className="text-slate-500 max-w-lg mx-auto text-lg font-medium leading-relaxed">
-                        Importez vos recettes préférées en un clin d'œil, que ce soit depuis un livre ou un site web.
+                        {t('scan.subtitle')}
                       </p>
                     </div>
                     <ScanOptions 
@@ -854,13 +883,13 @@ export default function App() {
       <AuthModal 
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        mode={authMode}
-        setMode={setAuthMode}
+        authMode={authMode}
+        setAuthMode={setAuthMode}
         email={email}
         setEmail={setEmail}
         password={password}
         setPassword={setPassword}
-        error={authError}
+        authError={authError}
         onGoogleLogin={handleGoogleLogin}
         onEmailAuth={handleEmailAuth}
       />
