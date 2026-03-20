@@ -510,9 +510,7 @@ export default function App() {
 
       {/* Mobile Header */}
       <header className="md:hidden bg-white/80 backdrop-blur-xl px-5 py-4 shadow-sm sticky top-0 z-40 flex justify-between items-center border-b border-orange-100">
-        <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-700 rounded-xl flex items-center justify-center shadow-lg shadow-orange-700/20">
-          <ChefHat className="w-5 h-5 text-white" />
-        </div>
+        <img src="/pwa-192x192.png" alt="ChefScan Logo" className="w-10 h-10 rounded-xl shadow-lg shadow-orange-700/20" />
         <h1 className="text-2xl font-serif font-black text-orange-950 tracking-tight italic">ChefScan</h1>
         <div className="flex items-center gap-2">
           {selectedForMenu.size > 0 && (
@@ -543,9 +541,7 @@ export default function App() {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-72 bg-[#FDFCFB] border-r border-orange-100/50 h-screen sticky top-0 p-6">
         <div className="flex items-center justify-between mb-10">
-          <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-700 rounded-xl flex items-center justify-center shadow-lg shadow-orange-700/20">
-            <ChefHat className="w-6 h-6 text-white" />
-          </div>
+          <img src="/pwa-192x192.png" alt="ChefScan Logo" className="w-10 h-10 rounded-xl shadow-lg shadow-orange-700/20" />
           <h1 className="text-2xl font-serif font-black text-orange-950 tracking-tight italic">ChefScan</h1>
           <button 
             onClick={() => setShowSettingsModal(true)}
