@@ -20,6 +20,15 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
 }) => {
   const { t } = useLanguage();
 
+  const getTranslatedComplexity = (complexity: string) => {
+    if (!complexity) return '-';
+    const lower = complexity.toLowerCase();
+    if (lower.includes('facile') || lower.includes('easy')) return t('library.easy');
+    if (lower.includes('moyen') || lower.includes('medium')) return t('library.medium');
+    if (lower.includes('difficile') || lower.includes('hard')) return t('library.hard');
+    return complexity;
+  };
+
   return (
     <div 
       onClick={() => onView(recipe)}
@@ -57,8 +66,8 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
       
       <div className="flex flex-wrap items-center gap-2.5 text-[10px] text-slate-500 font-bold mt-auto pt-3 border-t border-slate-50">
         <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-orange-500" /> {recipe.prepTime || '-'}</span>
-        <span className="flex items-center gap-1.5"><ChefHat className="w-3.5 h-3.5 text-orange-500" /> {recipe.complexity || '-'}</span>
-        <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-orange-500" /> {recipe.servings || 4} pers.</span>
+        <span className="flex items-center gap-1.5"><ChefHat className="w-3.5 h-3.5 text-orange-500" /> {getTranslatedComplexity(recipe.complexity)}</span>
+        <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-orange-500" /> {recipe.servings || 4} {t('library.servings')}</span>
         <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md ml-auto text-[9px] uppercase font-black tracking-widest">{recipe.source}</span>
       </div>
     </div>

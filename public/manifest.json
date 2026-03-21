@@ -1,10 +1,12 @@
 {
+  "id": "/",
   "name": "ChefScan",
   "short_name": "ChefScan",
   "description": "Vos recettes, simplifiées",
   "theme_color": "#c2410c",
   "background_color": "#ffffff",
   "display": "standalone",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "/pwa-192x192.png",
@@ -21,6 +23,20 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow"
     }
   ]
 }

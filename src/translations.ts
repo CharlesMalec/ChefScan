@@ -38,7 +38,11 @@ export const translations = {
       shoppingList: "Liste de courses",
       emptyTitle: "Votre bibliothèque est vide",
       emptyDesc: "Commencez par scanner un livre de cuisine ou importer un lien depuis un site web pour créer votre collection.",
-      addFirst: "Ajouter ma première recette"
+      addFirst: "Ajouter ma 1ère recette",
+      servings: "pers.",
+      easy: "Facile",
+      medium: "Moyen",
+      hard: "Difficile"
     },
     tutorial: {
       title: "Bienvenue sur votre carnet intelligent",
@@ -113,6 +117,11 @@ export const translations = {
       subscribe: "S'abonner pour 4.99€/mois",
       redirecting: "Redirection...",
       noCommitment: "Sans engagement, annulez à tout moment."
+    },
+    footer: {
+      madeWith: "Fait avec ❤️ par Charles",
+      legal: "Mentions Légales",
+      privacy: "Politique de Confidentialité"
     }
   },
   en: {
@@ -152,7 +161,11 @@ export const translations = {
       shoppingList: "Shopping list",
       emptyTitle: "Your library is empty",
       emptyDesc: "Start by scanning a cookbook or importing a link from a website to create your collection.",
-      addFirst: "Add my first recipe"
+      addFirst: "Add my first recipe",
+      servings: "serv.",
+      easy: "Easy",
+      medium: "Medium",
+      hard: "Hard"
     },
     tutorial: {
       title: "Welcome to your smart recipe book",
@@ -227,6 +240,11 @@ export const translations = {
       subscribe: "Subscribe for €4.99/month",
       redirecting: "Redirecting...",
       noCommitment: "No commitment, cancel anytime."
+    },
+    footer: {
+      madeWith: "Made with ❤️ by Charles",
+      legal: "Legal Notice",
+      privacy: "Privacy Policy"
     }
   }
 };

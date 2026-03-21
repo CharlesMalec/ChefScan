@@ -29,6 +29,15 @@ const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
   const [editForm, setEditForm] = useState<Recipe | null>(null);
   const [viewServings, setViewServings] = useState(4);
 
+  const getTranslatedComplexity = (complexity: string) => {
+    if (!complexity) return '-';
+    const lower = complexity.toLowerCase();
+    if (lower.includes('facile') || lower.includes('easy')) return t('library.easy');
+    if (lower.includes('moyen') || lower.includes('medium')) return t('library.medium');
+    if (lower.includes('difficile') || lower.includes('hard')) return t('library.hard');
+    return complexity;
+  };
+
   useEffect(() => {
     if (recipe) {
       setEditForm(recipe);
@@ -162,7 +171,7 @@ const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
                 <>
                   <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-orange-500" /> {t('scan.prep')}: {recipe.prepTime || '-'}</span>
                   <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-orange-500" /> {t('scan.cook')}: {recipe.cookTime || '-'}</span>
-                  <span className="flex items-center gap-1.5"><ChefHat className="w-4 h-4 text-orange-500" /> {t('scan.complexity')}: {recipe.complexity || '-'}</span>
+                  <span className="flex items-center gap-1.5"><ChefHat className="w-4 h-4 text-orange-500" /> {t('scan.complexity')}: {getTranslatedComplexity(recipe.complexity)}</span>
                 </>
               )}
             </div>
@@ -303,7 +312,7 @@ const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
               onClick={() => { onToggleMenu(recipe.id); onClose(); }}
               className={`px-8 py-4 rounded-[20px] font-bold transition-all flex items-center gap-2 shadow-2xl active:scale-95 ${isSelected ? 'bg-slate-900 text-white shadow-slate-900/20' : 'bg-orange-900 text-white hover:bg-orange-950 shadow-orange-900/30'}`}
             >
-              {isSelected ? <><X className="w-4 h-4" /> Retirer du menu</> : <><Check className="w-4 h-4" /> Ajouter au menu</>}
+              {isSelected ? <><X className="w-4 h-4" /> {t('settings.removeFromMenu')}</> : <><Check className="w-4 h-4" /> {t('settings.addToMenu')}</>}
             </button>
           </div>
         </motion.div>

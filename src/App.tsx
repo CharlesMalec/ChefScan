@@ -399,10 +399,10 @@ export default function App() {
       // Basic accent normalization for better matching
       n = n.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-      // Basic plural normalization for common French cases
+      // Basic plural normalization for common cases
       if (n.endsWith('s') && n.length > 3) {
         // Avoid stripping 's' from words like 'maïs', 'pois', 'ananas'
-        const exceptions = ['mais', 'pois', 'ananas', 'radis', 'cassis'];
+        const exceptions = ['mais', 'pois', 'ananas', 'radis', 'cassis', 'glass', 'molasses', 'couscous', 'hummus'];
         if (!exceptions.includes(n)) {
           return n.slice(0, -1);
         }
@@ -419,12 +419,23 @@ export default function App() {
     const normalizeUnit = (unit: string) => {
       let u = unit.toLowerCase().trim();
       if (u === 'null' || u === 'undefined') return '';
+      
+      // French
       if (u === 'gousses' || u === 'gousse') return 'gousse';
       if (u === 'cuillères' || u === 'cuillère') return 'cuillère';
       if (u === 'pincées' || u === 'pincée') return 'pincée';
       if (u === 'tranches' || u === 'tranche') return 'tranche';
       if (u === 'grammes' || u === 'g') return 'g';
       if (u === 'entiers' || u === 'entier') return 'entier';
+      
+      // English
+      if (u === 'cloves' || u === 'clove') return 'clove';
+      if (u === 'spoons' || u === 'spoon') return 'spoon';
+      if (u === 'pinches' || u === 'pinch') return 'pinch';
+      if (u === 'slices' || u === 'slice') return 'slice';
+      if (u === 'grams' || u === 'g') return 'g';
+      if (u === 'whole') return 'whole';
+      
       if (u.endsWith('s') && u.length > 3) return u.slice(0, -1);
       return u;
     };
@@ -730,13 +741,13 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="text-center">
+                    <div className="text-center mt-8">
                       <button 
                         onClick={() => setActiveTab('scan')}
-                        className="bg-orange-800 hover:bg-orange-900 transition-all text-white px-10 py-4 rounded-2xl font-bold shadow-xl shadow-orange-900/20 active:scale-95 inline-flex items-center gap-2"
+                        className="w-full sm:w-auto bg-orange-800 hover:bg-orange-900 transition-all text-white px-6 sm:px-10 py-4 rounded-2xl font-bold shadow-xl shadow-orange-900/20 active:scale-95 inline-flex items-center justify-center gap-2"
                       >
-                        <Plus className="w-5 h-5" />
-                        {t('library.addFirst')}
+                        <Plus className="w-5 h-5 shrink-0" />
+                        <span>{t('library.addFirst')}</span>
                       </button>
                     </div>
                   </div>
@@ -811,20 +822,20 @@ export default function App() {
         {/* Footer Banner */}
         <footer className="mt-auto pt-12 pb-24 md:pb-8 border-t border-orange-100 px-6 text-center">
           <div className="flex flex-col items-center justify-center gap-4 text-xs font-medium text-slate-400">
-            <p className="order-2 md:order-1">© 2026 ChefScan • Fait avec ❤️ par Charles</p>
+            <p className="order-2 md:order-1">© 2026 ChefScan • {t('footer.madeWith')}</p>
             <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8 order-1 md:order-2">
               <button 
                 onClick={() => setLegalModalType('terms')}
                 className="hover:text-orange-600 transition-colors"
               >
-                Mentions Légales
+                {t('footer.legal')}
               </button>
               <span className="hidden md:inline w-1 h-1 bg-slate-200 rounded-full"></span>
               <button 
                 onClick={() => setLegalModalType('privacy')}
                 className="hover:text-orange-600 transition-colors"
               >
-                Politique de Confidentialité
+                {t('footer.privacy')}
               </button>
             </div>
           </div>

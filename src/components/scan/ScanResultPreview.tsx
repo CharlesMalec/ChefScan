@@ -12,6 +12,15 @@ interface ScanResultPreviewProps {
 const ScanResultPreview: React.FC<ScanResultPreviewProps> = ({ scannedRecipe, onClose, onSave }) => {
   const { t } = useLanguage();
 
+  const getTranslatedComplexity = (complexity: string) => {
+    if (!complexity) return '-';
+    const lower = complexity.toLowerCase();
+    if (lower.includes('facile') || lower.includes('easy')) return t('library.easy');
+    if (lower.includes('moyen') || lower.includes('medium')) return t('library.medium');
+    if (lower.includes('difficile') || lower.includes('hard')) return t('library.hard');
+    return complexity;
+  };
+
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
       <div className="bg-orange-50 p-8 relative">
@@ -34,8 +43,8 @@ const ScanResultPreview: React.FC<ScanResultPreviewProps> = ({ scannedRecipe, on
         <div className="flex flex-wrap gap-6 mt-6 text-sm font-medium text-slate-700">
           <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-orange-500" /> {t('scan.prep')}: {scannedRecipe.prepTime || '?'}</span>
           <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-orange-500" /> {t('scan.cook')}: {scannedRecipe.cookTime || '?'}</span>
-          <span className="flex items-center gap-2"><ChefHat className="w-4 h-4 text-orange-500" /> {t('scan.complexity')}: {scannedRecipe.complexity || '?'}</span>
-          <span className="flex items-center gap-2"><Users className="w-4 h-4 text-orange-500" /> {scannedRecipe.servings || 4} pers.</span>
+          <span className="flex items-center gap-2"><ChefHat className="w-4 h-4 text-orange-500" /> {t('scan.complexity')}: {getTranslatedComplexity(scannedRecipe.complexity)}</span>
+          <span className="flex items-center gap-2"><Users className="w-4 h-4 text-orange-500" /> {scannedRecipe.servings || 4} {t('library.servings')}</span>
         </div>
       </div>
       
