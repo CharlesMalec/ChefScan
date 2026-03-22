@@ -3,8 +3,8 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/pwa-192x192-v2.png',
-  '/pwa-512x512-v2.png'
+  '/pwa-192x192.png',
+  '/pwa-512x512.png'
 ];
 
 self.addEventListener('install', event => {
@@ -43,8 +43,8 @@ self.addEventListener('push', event => {
   
   const options = {
     body: data.body,
-    icon: '/pwa-192x192-v2.png',
-    badge: '/pwa-192x192-v2.png'
+    icon: '/pwa-192x192.png',
+    badge: '/pwa-192x192.png'
   };
 
   event.waitUntil(
