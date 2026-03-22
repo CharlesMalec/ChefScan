@@ -24,7 +24,14 @@ const ScanResultPreview: React.FC<ScanResultPreviewProps> = ({ scannedRecipe, on
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
       <div className="bg-orange-50 p-8 relative">
-        <button onClick={onClose} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 bg-white/50 rounded-full p-2">
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }} 
+          type="button"
+          className="absolute top-6 right-6 bg-orange-600 hover:bg-orange-700 text-white rounded-full p-2.5 z-50 transition-all shadow-lg active:scale-90"
+        >
           <X className="w-6 h-6" />
         </button>
         <span className="text-xs font-bold tracking-wider text-orange-600 uppercase mb-3 block">{t('scan.previewTitle')}</span>

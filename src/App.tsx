@@ -273,7 +273,7 @@ export default function App() {
     try {
       const base64String = await compressImage(file);
       const recipeData = await analyzeRecipeImage(base64String, 'image/jpeg', language);
-      setScannedRecipe({ ...recipeData, id: crypto.randomUUID(), source: 'Livre' });
+      setScannedRecipe({ ...recipeData, id: crypto.randomUUID(), source: t('scan.sourceBook') });
     } catch (error: any) {
       console.error(error);
       alert(`Erreur lors de l'analyse de l'image : ${error.message || "Erreur inconnue"}. Assurez-vous que la connexion internet est bonne et réessayez.`);
@@ -288,7 +288,7 @@ export default function App() {
     setLoading(true);
     try {
       const recipeData = await analyzeRecipeUrl(urlInput, language);
-      setScannedRecipe({ ...recipeData, id: crypto.randomUUID(), source: 'Web', sourceUrl: urlInput });
+      setScannedRecipe({ ...recipeData, id: crypto.randomUUID(), source: t('scan.sourceWeb'), sourceUrl: urlInput });
       setUrlInput('');
     } catch (error) {
       console.error(error);
@@ -337,6 +337,8 @@ export default function App() {
       } catch (e) {
         console.error("Failed to save recipe", e);
         alert("Erreur lors de la sauvegarde de la recette.");
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -521,8 +523,20 @@ export default function App() {
 
       {/* Mobile Header */}
       <header className="md:hidden bg-white/80 backdrop-blur-xl px-5 py-4 shadow-sm sticky top-0 z-40 flex justify-between items-center border-b border-orange-100">
-        <img src="/pwa-192x192.png" alt="ChefScan Logo" className="w-10 h-10 rounded-xl shadow-lg shadow-orange-700/20" />
-        <h1 className="text-2xl font-serif font-black text-orange-950 tracking-tight italic">ChefScan</h1>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-orange-700 rounded-xl shadow-lg shadow-orange-700/20 flex items-center justify-center overflow-hidden">
+            <img 
+              src="/pwa-192x192.png" 
+              alt="Logo" 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+                (e.target as HTMLImageElement).parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chef-hat text-white w-6 h-6"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><path d="M6 17h12"/></svg>';
+              }}
+            />
+          </div>
+          <h1 className="text-2xl font-serif font-black text-orange-950 tracking-tight italic">ChefScan</h1>
+        </div>
         <div className="flex items-center gap-2">
           {selectedForMenu.size > 0 && (
             <button onClick={() => setActiveTab('list')} className="relative p-2.5 bg-orange-50 rounded-xl text-orange-900 border border-orange-100">
@@ -552,8 +566,20 @@ export default function App() {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-72 bg-[#FDFCFB] border-r border-orange-100/50 h-screen sticky top-0 p-6">
         <div className="flex items-center justify-between mb-10">
-          <img src="/pwa-192x192.png" alt="ChefScan Logo" className="w-10 h-10 rounded-xl shadow-lg shadow-orange-700/20" />
-          <h1 className="text-2xl font-serif font-black text-orange-950 tracking-tight italic">ChefScan</h1>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-orange-700 rounded-xl shadow-lg shadow-orange-700/20 flex items-center justify-center overflow-hidden">
+              <img 
+                src="/pwa-192x192.png" 
+                alt="Logo" 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                  (e.target as HTMLImageElement).parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chef-hat text-white w-6 h-6"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><path d="M6 17h12"/></svg>';
+                }}
+              />
+            </div>
+            <h1 className="text-2xl font-serif font-black text-orange-950 tracking-tight italic">ChefScan</h1>
+          </div>
           <button 
             onClick={() => setShowSettingsModal(true)}
             className="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all"
@@ -855,7 +881,13 @@ export default function App() {
           
           <div className="relative -top-6">
             <button 
-              onClick={() => setActiveTab('scan')}
+              onClick={() => {
+                if (activeTab === 'scan' && scannedRecipe) {
+                  setScannedRecipe(null);
+                } else {
+                  setActiveTab('scan');
+                }
+              }}
               className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-90 ${activeTab === 'scan' ? 'bg-orange-900 text-white rotate-45' : 'bg-orange-800 text-white'}`}
             >
               <Plus className="w-8 h-8" />

@@ -82,7 +82,9 @@ export const translations = {
         "Dressage de l'assiette...",
         "Finalisation du plat..."
       ],
-      loadingNote: "Cela peut prendre environ 1 minute..."
+      loadingNote: "Cela peut prendre environ 1 minute...",
+      sourceBook: "Livre",
+      sourceWeb: "Web"
     },
     settings: {
       title: "Paramètres",
@@ -205,7 +207,9 @@ export const translations = {
         "Plating the dish...",
         "Finalizing the meal..."
       ],
-      loadingNote: "This may take about 1 minute..."
+      loadingNote: "This may take about 1 minute...",
+      sourceBook: "Book",
+      sourceWeb: "Web"
     },
     settings: {
       title: "Settings",
