@@ -1,5 +1,6 @@
 {
   "id": "/",
+  "start_url": "/",
   "name": "ChefScan",
   "short_name": "ChefScan",
   "description": "Vos recettes, simplifiées",
@@ -7,6 +8,10 @@
   "background_color": "#ffffff",
   "display": "standalone",
   "orientation": "portrait",
+  "categories": ["food", "lifestyle", "utilities"],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "iarc_rating_id": "",
   "icons": [
     {
       "src": "/pwa-192x192.png",
