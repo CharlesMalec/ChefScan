@@ -1,17 +1,26 @@
 {
   "id": "/",
   "start_url": "/",
+  "scope": "/",
+  "lang": "fr",
   "name": "ChefScan",
   "short_name": "ChefScan",
   "description": "Vos recettes, simplifiées",
   "theme_color": "#c2410c",
   "background_color": "#ffffff",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "orientation": "portrait",
   "categories": ["food", "lifestyle", "utilities"],
   "prefer_related_applications": false,
-  "related_applications": [],
-  "iarc_rating_id": "",
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.chefscan.app",
+      "id": "com.chefscan.app"
+    }
+  ],
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
   "icons": [
     {
       "src": "/pwa-192x192.png",
