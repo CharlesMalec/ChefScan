@@ -10,7 +10,7 @@
   "theme_color": "#c2410c",
   "background_color": "#ffffff",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "display_override": ["tabbed", "window-controls-overlay", "standalone", "minimal-ui"],
   "orientation": "portrait",
   "launch_handler": {
     "client_mode": "navigate-existing"
@@ -27,10 +27,10 @@
   "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
   "scope_extensions": [
     {
-      "origin": "*.run.app"
+      "origin": "https://*.run.app"
     },
     {
-      "origin": "*.chefscan.be"
+      "origin": "https://*.chefscan.be"
     }
   ],
   "protocol_handlers": [
@@ -75,6 +75,9 @@
   ],
   "edge_side_panel": {
     "preferred_width": 400
+  },
+  "note_taking": {
+    "new_note_url": "/?new_note=true"
   },
   "shortcuts": [
     {
