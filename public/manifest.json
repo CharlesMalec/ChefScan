@@ -28,8 +28,54 @@
   "scope_extensions": [
     {
       "origin": "*.run.app"
+    },
+    {
+      "origin": "*.chefscan.be"
     }
   ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+chefscan",
+      "url": "/?url=%s"
+    }
+  ],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "widgets": [
+    {
+      "name": "ChefScan Widget",
+      "description": "Accès rapide à vos recettes",
+      "tag": "chefscan-widget",
+      "template": "widget-template",
+      "ms_ac_template": "widget-template",
+      "data": "widget-data",
+      "type": "application/json",
+      "screenshots": [
+        {
+          "src": "/pwa-512x512.png",
+          "sizes": "512x512",
+          "label": "ChefScan Widget"
+        }
+      ],
+      "icons": [
+        {
+          "src": "/pwa-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
   "shortcuts": [
     {
       "name": "Nouvelle recette",
