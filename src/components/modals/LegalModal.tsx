@@ -73,6 +73,11 @@ const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, type }) => {
                 <p>
                   Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, de suppression et de portabilité de vos données. Vous pouvez exercer ces droits en nous contactant directement ou en supprimant votre compte depuis les paramètres de l'application.
                 </p>
+
+                <h3 className="text-lg font-bold text-slate-800">6. Suppression des données</h3>
+                <p>
+                  Vous pouvez demander la suppression complète de votre compte et de toutes les données associées à tout moment via les paramètres de l'application ou en envoyant un e-mail à <strong>charles.malec@hotmail.fr</strong>.
+                </p>
               </>
             ) : (
               <>

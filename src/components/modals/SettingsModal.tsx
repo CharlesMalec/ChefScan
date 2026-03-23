@@ -82,15 +82,28 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               
               {/* Account Section */}
               {user && (
-                <button 
-                  onClick={() => {
-                    onLogout();
-                    onClose();
-                  }}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-white text-red-600 font-bold hover:bg-red-50 transition-all border-2 border-red-50 text-sm"
-                >
-                  <LogOut className="w-4 h-4" /> {t('settings.logout')}
-                </button>
+                <div className="space-y-3">
+                  <button 
+                    onClick={() => {
+                      onLogout();
+                      onClose();
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-white text-slate-600 font-bold hover:bg-slate-50 transition-all border-2 border-slate-50 text-sm"
+                  >
+                    <LogOut className="w-4 h-4" /> {t('settings.logout')}
+                  </button>
+                  
+                  <div className="pt-4 text-center">
+                    <a 
+                      href="/delete-account" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-red-600 transition-colors underline underline-offset-4"
+                    >
+                      Supprimer mon compte & mes données
+                    </a>
+                  </div>
+                </div>
               )}
             </div>
           </motion.div>

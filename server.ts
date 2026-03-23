@@ -16,6 +16,7 @@ async function startServer() {
   // Legal redirects
   app.get("/privacy", (req, res) => res.redirect("/?page=privacy"));
   app.get("/terms", (req, res) => res.redirect("/?page=terms"));
+  app.get("/delete-account", (req, res) => res.redirect("/?page=delete"));
 
   const isProduction = process.env.NODE_ENV === "production";
   const distPath = path.join(__dirname, "dist");

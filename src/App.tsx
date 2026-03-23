@@ -53,7 +53,7 @@ export default function App() {
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | null>(null);
   const [recipeToDelete, setRecipeToDelete] = useState<string | null>(null);
-  const [showLegalPage, setShowLegalPage] = useState<'privacy' | 'terms' | null>(null);
+  const [showLegalPage, setShowLegalPage] = useState<'privacy' | 'terms' | 'delete' | 'logo' | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const pendingSaveRef = useRef(false);
@@ -66,6 +66,8 @@ export default function App() {
     const page = query.get('page');
     if (page === 'privacy') setShowLegalPage('privacy');
     if (page === 'terms') setShowLegalPage('terms');
+    if (page === 'delete') setShowLegalPage('delete');
+    if (page === 'logo') setShowLegalPage('logo');
 
     if (query.get("success")) {
       alert("Paiement réussi ! Vous êtes maintenant Premium 🎉");
@@ -559,13 +561,25 @@ export default function App() {
               <p className="text-slate-600">
                 Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, de suppression et de portabilité de vos données. Vous pouvez exercer ces droits en nous contactant directement ou en supprimant votre compte depuis les paramètres de l'application.
               </p>
+
+              <h3 className="text-xl font-bold text-slate-800">6. Suppression des données (Google Play)</h3>
+              <p className="text-slate-600">
+                Vous pouvez demander la suppression complète de votre compte et de toutes les données associées (recettes, listes, profil) à tout moment. Pour ce faire :
+              </p>
+              <ul className="list-disc pl-5 text-slate-600 space-y-2">
+                <li>Option 1 : Allez dans les <strong>Paramètres</strong> de l'application et cliquez sur "Supprimer mon compte".</li>
+                <li>Option 2 : Envoyez un e-mail à <strong>charles.malec@hotmail.fr</strong> avec pour objet "Demande de suppression de compte".</li>
+              </ul>
+              <p className="text-slate-600">
+                Toutes les données seront définitivement supprimées de nos serveurs sous 30 jours.
+              </p>
               
-              <h3 className="text-xl font-bold text-slate-800">6. Contact</h3>
+              <h3 className="text-xl font-bold text-slate-800">7. Contact</h3>
               <p className="text-slate-600">
                 Pour toute question concernant vos données : charles.malec@hotmail.fr
               </p>
             </div>
-          ) : (
+          ) : showLegalPage === 'terms' ? (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-slate-800">Mentions Légales & Conditions</h2>
               <p className="text-slate-600">Dernière mise à jour : 23 mars 2026</p>
@@ -599,7 +613,63 @@ export default function App() {
                 L'utilisation de l'application implique l'acceptation pleine et entière des présentes conditions. L'éditeur se réserve le droit de modifier ces conditions à tout moment.
               </p>
             </div>
-          )}
+          ) : showLegalPage === 'delete' ? (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-slate-800">Demande de suppression de compte</h2>
+              <p className="text-slate-600">
+                Conformément aux exigences de Google Play, vous pouvez demander la suppression de votre compte ChefScan et de l'intégralité de vos données personnelles.
+              </p>
+              
+              <div className="bg-orange-50 p-6 rounded-2xl border border-orange-100">
+                <h3 className="text-lg font-bold text-orange-900 mb-2">Comment procéder ?</h3>
+                <p className="text-orange-800 mb-4">
+                  Pour supprimer votre compte et vos données, veuillez envoyer un e-mail à l'adresse suivante :
+                </p>
+                <a 
+                  href="mailto:charles.malec@hotmail.fr?subject=Demande de suppression de compte ChefScan" 
+                  className="text-xl font-black text-orange-700 underline underline-offset-4"
+                >
+                  charles.malec@hotmail.fr
+                </a>
+                <p className="mt-4 text-sm text-orange-600">
+                  Veuillez utiliser l'adresse e-mail associée à votre compte ChefScan pour que nous puissions vous identifier.
+                </p>
+              </div>
+
+              <h3 className="text-xl font-bold text-slate-800">Quelles données seront supprimées ?</h3>
+              <ul className="list-disc pl-5 text-slate-600 space-y-2">
+                <li>Votre profil utilisateur (e-mail, nom, photo).</li>
+                <li>L'intégralité de votre bibliothèque de recettes.</li>
+                <li>Vos listes de courses et préférences.</li>
+                <li>Vos données d'abonnement (via Stripe).</li>
+              </ul>
+              
+              <p className="text-slate-600 italic">
+                Note : Une fois la suppression effectuée, ces données ne pourront pas être récupérées.
+              </p>
+            </div>
+          ) : showLegalPage === 'logo' ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-16">
+              <div className="flex flex-col items-center gap-6">
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Logo Vectoriel (Haute Définition)</p>
+                <div className="w-80 h-80 bg-orange-700 rounded-[80px] shadow-2xl flex items-center justify-center">
+                  <ChefHat className="text-white w-48 h-48" strokeWidth={1.5} />
+                </div>
+              </div>
+              
+              <div className="flex flex-col items-center gap-6">
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Logo Image (PNG)</p>
+                <div className="w-80 h-80 bg-white rounded-[80px] shadow-2xl overflow-hidden border border-slate-100 flex items-center justify-center">
+                  <img src="/pwa-192x192.png" alt="Logo" className="w-full h-full object-cover" />
+                </div>
+              </div>
+
+              <div className="text-center">
+                <h1 className="text-8xl font-serif font-black text-orange-950 italic tracking-tighter">ChefScan</h1>
+                <p className="text-slate-400 font-bold mt-6 uppercase tracking-[0.5em] text-sm">L'intelligence en cuisine</p>
+              </div>
+            </div>
+          ) : null}
         </div>
         <div className="mt-12 pt-8 border-t text-center text-slate-400 text-sm">
           &copy; 2026 ChefScan - Tous droits réservés

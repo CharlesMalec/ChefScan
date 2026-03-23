@@ -129,6 +129,11 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   {authMode === 'login' ? t('auth.signUp') : t('auth.signIn')}
                 </button>
               </p>
+
+              <div className="mt-8 pt-6 border-t border-slate-100 flex justify-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-orange-700 transition-colors">Confidentialité</a>
+                <a href="/terms" target="_blank" rel="noopener noreferrer" className="hover:text-orange-700 transition-colors">Conditions</a>
+              </div>
             </div>
           </motion.div>
         </motion.div>
