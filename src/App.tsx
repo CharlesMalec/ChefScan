@@ -53,6 +53,7 @@ export default function App() {
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | null>(null);
   const [recipeToDelete, setRecipeToDelete] = useState<string | null>(null);
+  const [showLegalPage, setShowLegalPage] = useState<'privacy' | 'terms' | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const pendingSaveRef = useRef(false);
@@ -60,6 +61,12 @@ export default function App() {
   // Stripe Success/Cancel handling
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
+    
+    // Handle legal pages
+    const page = query.get('page');
+    if (page === 'privacy') setShowLegalPage('privacy');
+    if (page === 'terms') setShowLegalPage('terms');
+
     if (query.get("success")) {
       alert("Paiement réussi ! Vous êtes maintenant Premium 🎉");
       // Clean up URL
@@ -501,6 +508,105 @@ export default function App() {
       : true;
     return matchesTag && matchesSearch;
   });
+
+  if (showLegalPage) {
+    return (
+      <div className="min-h-screen bg-white p-8 max-w-4xl mx-auto">
+        <div className="flex justify-between items-center mb-8 pb-4 border-b">
+          <h1 className="text-3xl font-serif font-black text-orange-950 italic">ChefScan</h1>
+          <button 
+            onClick={() => {
+              setShowLegalPage(null);
+              window.history.replaceState(null, '', window.location.pathname);
+            }}
+            className="text-slate-500 hover:text-slate-800 font-bold"
+          >
+            Retour à l'app
+          </button>
+        </div>
+        <div className="prose prose-slate max-w-none">
+          {showLegalPage === 'privacy' ? (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-slate-800">Politique de Confidentialité</h2>
+              <p className="text-slate-600">Dernière mise à jour : 23 mars 2026</p>
+              
+              <h3 className="text-xl font-bold text-slate-800">1. Collecte des données</h3>
+              <p className="text-slate-600">
+                Dans le cadre de l'utilisation de l'application ChefScan, nous sommes amenés à collecter certaines données personnelles vous concernant, notamment lors de la création de votre compte (adresse e-mail, nom d'utilisateur) et de l'utilisation de nos services (recettes enregistrées, listes de courses).
+              </p>
+
+              <h3 className="text-xl font-bold text-slate-800">2. Utilisation des données</h3>
+              <p className="text-slate-600">
+                Vos données sont utilisées exclusivement pour le bon fonctionnement de l'application : sauvegarde de vos recettes, synchronisation de vos listes de courses entre vos appareils, et gestion de votre abonnement Premium le cas échéant.
+              </p>
+
+              <h3 className="text-xl font-bold text-slate-800">3. Protection et stockage</h3>
+              <p className="text-slate-600">
+                Vos données sont stockées de manière sécurisée sur les serveurs de Google (Firebase) situés en Europe. Nous mettons en œuvre toutes les mesures techniques et organisationnelles nécessaires pour garantir la sécurité de vos informations.
+              </p>
+
+              <h3 className="text-xl font-bold text-slate-800">4. Services tiers</h3>
+              <div className="text-slate-600">
+                Nous utilisons les services suivants :
+                <ul className="list-disc pl-5 mt-2 space-y-1">
+                  <li><strong>Firebase (Google) :</strong> pour l'authentification et l'hébergement de la base de données.</li>
+                  <li><strong>Stripe :</strong> pour le traitement sécurisé des paiements (version Premium). Aucune donnée bancaire n'est stockée sur nos serveurs.</li>
+                  <li><strong>Google Gemini :</strong> pour l'analyse intelligente des images et des URLs de recettes.</li>
+                </ul>
+              </div>
+
+              <h3 className="text-xl font-bold text-slate-800">5. Vos droits</h3>
+              <p className="text-slate-600">
+                Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, de suppression et de portabilité de vos données. Vous pouvez exercer ces droits en nous contactant directement ou en supprimant votre compte depuis les paramètres de l'application.
+              </p>
+              
+              <h3 className="text-xl font-bold text-slate-800">6. Contact</h3>
+              <p className="text-slate-600">
+                Pour toute question concernant vos données : charles.malec@hotmail.fr
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-slate-800">Mentions Légales & Conditions</h2>
+              <p className="text-slate-600">Dernière mise à jour : 23 mars 2026</p>
+
+              <h3 className="text-xl font-bold text-slate-800">1. Éditeur de l'application</h3>
+              <p className="text-slate-600">
+                L'application ChefScan est éditée à titre personnel.<br />
+                <strong>Contact :</strong> charles.malec@hotmail.fr
+              </p>
+
+              <h3 className="text-xl font-bold text-slate-800">2. Hébergement</h3>
+              <p className="text-slate-600">
+                L'application et ses bases de données sont hébergées par :<br />
+                <strong>Google Cloud Platform (Firebase)</strong><br />
+                Google Ireland Limited<br />
+                Gordon House, Barrow Street, Dublin 4, Irlande
+              </p>
+
+              <h3 className="text-xl font-bold text-slate-800">3. Propriété intellectuelle</h3>
+              <p className="text-slate-600">
+                L'ensemble des éléments composant l'application (textes, interfaces, illustrations, code source) sont la propriété exclusive de l'éditeur, à l'exception des images générées par les utilisateurs ou issues de banques d'images libres de droits.
+              </p>
+
+              <h3 className="text-xl font-bold text-slate-800">4. Responsabilité</h3>
+              <p className="text-slate-600">
+                L'éditeur s'efforce d'assurer au mieux la disponibilité et l'exactitude des fonctionnalités de l'application. Toutefois, l'application est fournie "en l'état". L'éditeur ne saurait être tenu responsable des erreurs d'extraction de recettes, des omissions dans les listes de courses ou des éventuels problèmes techniques.
+              </p>
+
+              <h3 className="text-xl font-bold text-slate-800">5. Conditions d'utilisation</h3>
+              <p className="text-slate-600">
+                L'utilisation de l'application implique l'acceptation pleine et entière des présentes conditions. L'éditeur se réserve le droit de modifier ces conditions à tout moment.
+              </p>
+            </div>
+          )}
+        </div>
+        <div className="mt-12 pt-8 border-t text-center text-slate-400 text-sm">
+          &copy; 2026 ChefScan - Tous droits réservés
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F5F2ED] flex flex-col md:flex-row font-sans text-slate-900">

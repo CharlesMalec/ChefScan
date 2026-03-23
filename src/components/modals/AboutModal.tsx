@@ -71,13 +71,19 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
 
               <p>{t('about.p4')}</p>
 
-              <div className="pt-6 mt-6 border-t border-slate-100 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-800 font-black text-xl font-sans">
-                  C
+              <div className="pt-6 mt-6 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-800 font-black text-xl font-sans">
+                    C
+                  </div>
+                  <div>
+                    <p className="font-black text-slate-900 font-sans">Charles</p>
+                    <p className="text-xs text-slate-500 font-sans">{t('about.role')}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-black text-slate-900 font-sans">Charles</p>
-                  <p className="text-xs text-slate-500 font-sans">{t('about.role')}</p>
+                <div className="flex gap-4 text-xs font-bold text-slate-400 font-sans">
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-orange-600 transition-colors underline underline-offset-4">Confidentialité</a>
+                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="hover:text-orange-600 transition-colors underline underline-offset-4">Conditions</a>
                 </div>
               </div>
             </div>

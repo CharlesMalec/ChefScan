@@ -12,6 +12,10 @@ async function startServer() {
   const PORT = Number(process.env.PORT) || 3000;
 
   app.use(express.json());
+  
+  // Legal redirects
+  app.get("/privacy", (req, res) => res.redirect("/?page=privacy"));
+  app.get("/terms", (req, res) => res.redirect("/?page=terms"));
 
   const isProduction = process.env.NODE_ENV === "production";
   const distPath = path.join(__dirname, "dist");

@@ -60,14 +60,14 @@ const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, type }) => {
                 </p>
 
                 <h3 className="text-lg font-bold text-slate-800">4. Services tiers</h3>
-                <p>
+                <div className="text-slate-600">
                   Nous utilisons les services suivants :
                   <ul className="list-disc pl-5 mt-2 space-y-1">
                     <li><strong>Firebase (Google) :</strong> pour l'authentification et l'hébergement de la base de données.</li>
                     <li><strong>Stripe :</strong> pour le traitement sécurisé des paiements (version Premium). Aucune donnée bancaire n'est stockée sur nos serveurs.</li>
                     <li><strong>Google Gemini :</strong> pour l'analyse intelligente des images et des URLs de recettes.</li>
                   </ul>
-                </p>
+                </div>
 
                 <h3 className="text-lg font-bold text-slate-800">5. Vos droits</h3>
                 <p>
