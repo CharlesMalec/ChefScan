@@ -54,15 +54,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 <div className="grid grid-cols-2 gap-3">
                   <button 
                     onClick={() => setLanguage('fr')}
-                    className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all text-sm font-bold ${language === 'fr' ? 'border-orange-600 bg-orange-50 text-orange-900' : 'border-slate-50 text-slate-500 hover:border-slate-200'}`}
+                    className={`flex flex-col items-center justify-center gap-2 py-4 rounded-xl border-2 transition-all text-sm font-bold ${language === 'fr' ? 'border-orange-600 bg-orange-50 text-orange-900' : 'border-slate-50 text-slate-500 hover:border-slate-200'}`}
                   >
-                    🇫🇷 Français
+                    <span className="text-2xl">🇫🇷</span>
+                    Français
                   </button>
                   <button 
                     onClick={() => setLanguage('en')}
-                    className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all text-sm font-bold ${language === 'en' ? 'border-orange-600 bg-orange-50 text-orange-900' : 'border-slate-50 text-slate-500 hover:border-slate-200'}`}
+                    className={`flex flex-col items-center justify-center gap-2 py-4 rounded-xl border-2 transition-all text-sm font-bold ${language === 'en' ? 'border-orange-600 bg-orange-50 text-orange-900' : 'border-slate-50 text-slate-500 hover:border-slate-200'}`}
                   >
-                    🇬🇧 English
+                    <span className="text-2xl">🇬🇧</span>
+                    English
                   </button>
                 </div>
               </div>

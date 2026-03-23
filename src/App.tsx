@@ -649,19 +649,21 @@ export default function App() {
               </p>
             </div>
           ) : showLegalPage === 'logo' ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-16">
-              <div className="flex flex-col items-center gap-6">
-                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Logo Vectoriel (Haute Définition)</p>
-                <div className="w-80 h-80 bg-orange-700 rounded-[80px] shadow-2xl flex items-center justify-center">
-                  <ChefHat className="text-white w-48 h-48" strokeWidth={1.5} />
+            <div className="flex flex-col items-center justify-center py-20 gap-20">
+              <div className="flex flex-col items-center gap-8">
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Logo Principal (512x512)</p>
+                <div className="w-96 h-96 bg-white rounded-[80px] shadow-2xl overflow-hidden border border-slate-100 flex items-center justify-center">
+                  <img src="/pwa-512x512.png" alt="Logo 512" className="w-full h-full object-cover" />
                 </div>
+                <p className="text-slate-300 text-[10px] font-mono">/public/pwa-512x512.png</p>
               </div>
               
-              <div className="flex flex-col items-center gap-6">
-                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Logo Image (PNG)</p>
-                <div className="w-80 h-80 bg-white rounded-[80px] shadow-2xl overflow-hidden border border-slate-100 flex items-center justify-center">
-                  <img src="/pwa-192x192.png" alt="Logo" className="w-full h-full object-cover" />
+              <div className="flex flex-col items-center gap-8">
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Logo Secondaire (192x192)</p>
+                <div className="w-48 h-48 bg-white rounded-[40px] shadow-xl overflow-hidden border border-slate-100 flex items-center justify-center">
+                  <img src="/pwa-192x192.png" alt="Logo 192" className="w-full h-full object-cover" />
                 </div>
+                <p className="text-slate-300 text-[10px] font-mono">/public/pwa-192x192.png</p>
               </div>
 
               <div className="text-center">
@@ -828,7 +830,10 @@ export default function App() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-black text-slate-900 truncate leading-tight mb-1">{user.displayName || user.email?.split('@')[0]}</p>
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-sm font-black text-slate-900 truncate leading-tight">{user.displayName || user.email?.split('@')[0]}</p>
+                    <span className="text-xs opacity-80">{language === 'fr' ? '🇫🇷' : '🇬🇧'}</span>
+                  </div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     {isPremium ? 'Membre Premium' : `${recipes.length}/10 RECETTES`}
                   </p>
