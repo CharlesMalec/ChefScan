@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+public/pwa-192x192.png
+public/pwa-512x512.png
+public/feature-graphic.png

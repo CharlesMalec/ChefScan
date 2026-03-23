@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, ShoppingCart, Plus, Loader2, User, Search, Filter, Heart, Settings, Crown, Star, ChefHat, X, Camera, Sparkles } from 'lucide-react';
+import { BookOpen, ShoppingCart, Plus, Loader2, User, Search, Filter, Heart, Settings, Crown, Star, ChefHat, X, Camera, Sparkles, Download } from 'lucide-react';
+import { toPng } from 'html-to-image';
 import { analyzeRecipeImage, analyzeRecipeUrl } from './services/gemini';
 import { Recipe } from './types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -54,6 +55,31 @@ export default function App() {
   const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | null>(null);
   const [recipeToDelete, setRecipeToDelete] = useState<string | null>(null);
   const [showLegalPage, setShowLegalPage] = useState<'privacy' | 'terms' | 'delete' | 'logo' | null>(null);
+  const featureGraphicRef = useRef<HTMLDivElement>(null);
+
+  const downloadFeatureGraphic = async () => {
+    if (featureGraphicRef.current === null) return;
+    try {
+      // Ensure images are loaded or handle missing ones before capture
+      const dataUrl = await toPng(featureGraphicRef.current, {
+        cacheBust: true,
+        width: 1024,
+        height: 500,
+        backgroundColor: '#FFF8F4',
+        style: {
+          borderRadius: '0'
+        }
+      });
+      const link = document.createElement('a');
+      link.download = 'chefscan-feature-graphic.png';
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Error downloading feature graphic:', err);
+      alert("Erreur lors du téléchargement. Assurez-vous que les fichiers logos sont présents dans le dossier public.");
+    }
+  };
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const pendingSaveRef = useRef(false);
@@ -659,11 +685,98 @@ export default function App() {
               </div>
               
               <div className="flex flex-col items-center gap-8">
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Logo Principal (512x512)</p>
+                <div className="w-64 h-64 bg-white rounded-[64px] shadow-2xl overflow-hidden border border-slate-100 flex items-center justify-center relative group">
+                  <img 
+                    src="/pwa-512x512.png" 
+                    alt="Logo 512" 
+                    className="w-full h-full object-cover" 
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        parent.innerHTML = '<div class="text-slate-300 flex flex-col items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg><span class="text-xs font-bold">Fichier manquant</span></div>';
+                      }
+                    }}
+                  />
+                </div>
+                <p className="text-slate-300 text-[10px] font-mono">/public/pwa-512x512.png</p>
+              </div>
+
+              <div className="flex flex-col items-center gap-8">
                 <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Logo Secondaire (192x192)</p>
                 <div className="w-48 h-48 bg-white rounded-[40px] shadow-xl overflow-hidden border border-slate-100 flex items-center justify-center">
-                  <img src="/pwa-192x192.png" alt="Logo 192" className="w-full h-full object-cover" />
+                  <img 
+                    src="/pwa-192x192.png" 
+                    alt="Logo 192" 
+                    className="w-full h-full object-cover" 
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        parent.innerHTML = '<div class="text-slate-300 flex flex-col items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg><span class="text-[10px] font-bold">Fichier manquant</span></div>';
+                      }
+                    }}
+                  />
                 </div>
                 <p className="text-slate-300 text-[10px] font-mono">/public/pwa-192x192.png</p>
+              </div>
+
+              <div className="flex flex-col items-center gap-8 w-full max-w-5xl">
+                <div className="flex items-center justify-between w-full">
+                  <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Google Play Feature Graphic (1024x500)</p>
+                  <button 
+                    onClick={downloadFeatureGraphic}
+                    className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-bold hover:bg-orange-700 transition-colors shadow-lg shadow-orange-600/20"
+                  >
+                    <Download className="w-4 h-4" />
+                    Télécharger en PNG
+                  </button>
+                </div>
+                <div 
+                  ref={featureGraphicRef}
+                  className="w-full aspect-[1024/500] bg-[#FFF8F4] rounded-3xl shadow-2xl overflow-hidden relative flex items-center justify-center border border-orange-100"
+                >
+                  {/* Background Pattern - Softer dots */}
+                  <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+                    <div className="absolute top-0 left-0 w-full h-full" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #C2410C 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
+                  </div>
+                  
+                  {/* Subtle Gradient Glow */}
+                  <div className="absolute -top-1/2 -right-1/4 w-[800px] h-[800px] bg-orange-100/30 rounded-full blur-[120px] pointer-events-none"></div>
+                  <div className="absolute -bottom-1/2 -left-1/4 w-[600px] h-[600px] bg-orange-100/20 rounded-full blur-[100px] pointer-events-none"></div>
+
+                  <div className="relative z-10 flex items-center gap-14 px-16">
+                    <div className="w-56 h-56 bg-white rounded-[64px] shadow-2xl shadow-orange-900/5 overflow-hidden flex items-center justify-center shrink-0 border border-orange-50">
+                      <img 
+                        src="/pwa-512x512.png" 
+                        alt="Logo" 
+                        className="w-full h-full object-cover" 
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.parentElement!.innerHTML = '<div class="flex flex-col items-center text-orange-200"><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" y1="17" x2="18" y2="17"/></svg><span class="text-[10px] mt-2 font-bold uppercase tracking-tighter">Logo manquant</span></div>';
+                        }}
+                      />
+                    </div>
+                    <div className="text-slate-900">
+                      <h2 className="text-8xl font-serif font-black italic tracking-tighter mb-3 text-orange-950">ChefScan</h2>
+                      <div className="flex items-center gap-3">
+                        <div className="h-px w-8 bg-orange-300"></div>
+                        <p className="text-xl font-bold text-orange-800/60 tracking-[0.2em] uppercase">L'intelligence en cuisine</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Decorative elements - Softer colors */}
+                  <div className="absolute top-12 right-12 opacity-10">
+                    <Sparkles className="w-24 h-24 text-orange-600" />
+                  </div>
+                  <div className="absolute bottom-12 left-12 opacity-10">
+                    <Camera className="w-20 h-20 text-orange-600" />
+                  </div>
+                </div>
+                <p className="text-slate-300 text-[10px] font-mono">Format requis par Google : 1024 x 500 px</p>
               </div>
 
               <div className="text-center">
